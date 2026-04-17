@@ -111,6 +111,169 @@
     }
     .page.active         { transform: translateX(0); }
     .page.exit-to-left   { transform: translateX(-100%); }
+
+    /* ── Typography ── */
+    h1, h2 { font-weight: 700; color: var(--color-text-primary); }
+    p, label { color: var(--color-text-secondary); font-weight: 400; }
+
+    /* ── CTA Button ── */
+    .btn-cta {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--color-cta-bg);
+      color: var(--color-cta-text);
+      font-size: 17px;
+      font-weight: 700;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      border-bottom: 4px solid var(--color-cta-shadow);
+      transition: transform 150ms ease-out;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-cta:active {
+      transform: scale(0.94) translateY(3px);
+      transition-duration: 80ms;
+      border-bottom-width: 1px;
+    }
+    .btn-cta:hover:not(:active) { transform: translateY(-2px); }
+
+    /* ── Secondary Button ── */
+    .btn-secondary {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      color: var(--color-text-primary);
+      font-size: 16px;
+      font-weight: 500;
+      border: 2px solid var(--color-border);
+      border-radius: 16px;
+      cursor: pointer;
+      transition: transform 150ms ease-out;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-secondary:active  { transform: scale(0.94) translateY(3px); transition-duration: 80ms; }
+    .btn-secondary:hover:not(:active) { transform: translateY(-2px); }
+
+    /* ── Underline Input ── */
+    .input-underline {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid var(--color-input-line);
+      padding: 8px 0;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--color-input-text);
+      outline: none;
+      caret-color: var(--color-input-line);
+    }
+    .input-underline::placeholder { color: var(--color-text-hint); font-weight: 400; }
+    .input-sm {
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    /* ── Back button ── */
+    .btn-back {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      color: var(--color-text-secondary);
+      font-size: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 150ms;
+    }
+    .btn-back:hover { background: var(--color-bg-secondary); }
+
+    /* ── Page layout regions ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px 8px;
+      flex-shrink: 0;
+    }
+    .page-content {
+      flex: 1;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+    }
+    .page-footer {
+      padding: 16px 28px 32px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ── Animations ── */
+    @keyframes btn-pop {
+      0%   { transform: scale(0.94) translateY(3px); }
+      60%  { transform: scale(1.04) translateY(-1px); }
+      100% { transform: scale(1) translateY(0); }
+    }
+    .btn-pop { animation: btn-pop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-6px); }
+      40%       { transform: translateX(6px); }
+      60%       { transform: translateX(-4px); }
+      80%       { transform: translateX(4px); }
+    }
+    .shake { animation: shake 400ms ease-in-out; }
+
+    @keyframes slide-up-fade {
+      from { transform: translateY(20px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .slide-up { animation: slide-up-fade 300ms ease-out both; }
+
+    @keyframes row-expand {
+      from { max-height: 0; opacity: 0; overflow: hidden; }
+      to   { max-height: 100px; opacity: 1; overflow: hidden; }
+    }
+    @keyframes row-collapse {
+      from { max-height: 100px; opacity: 1; overflow: hidden; }
+      to   { max-height: 0;     opacity: 0; overflow: hidden; }
+    }
+
+    /* ── Toggle group ── */
+    .toggle-group {
+      display: flex;
+      gap: 8px;
+    }
+    .toggle-btn {
+      flex: 1;
+      padding: 12px 8px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 150ms, color 150ms, transform 150ms ease-out;
+      background: var(--color-toggle-idle-bg);
+      color: var(--color-toggle-idle-text);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle-btn.active {
+      background: var(--color-toggle-active-bg);
+      color: var(--color-toggle-active-text);
+      font-weight: 700;
+    }
+    .toggle-btn:active { transform: scale(0.95); }
   </style>
 </head>
 <body>
@@ -120,7 +283,22 @@
     </div>
   </div>
   <script>
-    // JS goes here (later tasks)
+    function addBtnPopEffect(btn) {
+      btn.addEventListener('mouseup',  () => triggerPop(btn));
+      btn.addEventListener('touchend', () => triggerPop(btn));
+    }
+    function triggerPop(el) {
+      el.classList.remove('btn-pop');
+      void el.offsetWidth;
+      el.classList.add('btn-pop');
+      el.addEventListener('animationend', () => el.classList.remove('btn-pop'), { once: true });
+    }
+    function triggerShake(el) {
+      el.classList.remove('shake');
+      void el.offsetWidth;
+      el.classList.add('shake');
+      el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
+    }
   </script>
 </body>
 </html>
