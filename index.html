@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>分賬</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    /* ── CSS Variables ── */
+    :root {
+      --color-bg:                 #FFFFFF;
+      --color-bg-secondary:       #F7F7F7;
+      --color-bg-card:            #FFFFFF;
+      --color-text-primary:       #1A1A1A;
+      --color-text-secondary:     #6B6B6B;
+      --color-text-hint:          #AFAFAF;
+      --color-border:             #E5E5E5;
+      --color-border-strong:      #AFAFAF;
+      --color-input-line:         #58CC02;
+      --color-input-text:         #58A700;
+      --color-cta-bg:             #58CC02;
+      --color-cta-text:           #FFFFFF;
+      --color-cta-shadow:         #58A700;
+      --color-toggle-active-bg:   #58CC02;
+      --color-toggle-active-text: #FFFFFF;
+      --color-toggle-idle-bg:     #F7F7F7;
+      --color-toggle-idle-text:   #1A1A1A;
+      --color-node-text:          #FFFFFF;
+      --color-arrow:              #AFAFAF;
+      --color-amount-label:       #4B4B4B;
+      --color-desktop-frame:      #2A2A2A;
+      --color-desktop-bg:         #F7F7F7;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --color-bg:                 #111111;
+        --color-bg-secondary:       #1C1C1C;
+        --color-bg-card:            #1C1C1C;
+        --color-text-primary:       #F0F0F0;
+        --color-text-secondary:     #A0A0A0;
+        --color-text-hint:          #555555;
+        --color-border:             #2A2A2A;
+        --color-border-strong:      #444444;
+        --color-input-line:         #58CC02;
+        --color-input-text:         #7AE020;
+        --color-cta-bg:             #58CC02;
+        --color-cta-text:           #FFFFFF;
+        --color-cta-shadow:         #3D8A00;
+        --color-toggle-active-bg:   #58CC02;
+        --color-toggle-active-text: #FFFFFF;
+        --color-toggle-idle-bg:     #2A2A2A;
+        --color-toggle-idle-text:   #F0F0F0;
+        --color-node-text:          #FFFFFF;
+        --color-arrow:              #555555;
+        --color-amount-label:       #A0A0A0;
+        --color-desktop-frame:      #0A0A0A;
+        --color-desktop-bg:         #0D0D0D;
+      }
+    }
+
+    /* ── Reset + Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--color-desktop-bg);
+      color: var(--color-text-primary);
+    }
+
+    /* ── Desktop phone wrapper ── */
+    #phone-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: var(--color-bg);
+      overflow: hidden;
+    }
+    @media (min-width: 430px) {
+      body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+      #phone-wrapper {
+        width: 390px;
+        height: 844px;
+        border-radius: 50px;
+        border: 10px solid var(--color-desktop-frame);
+        box-shadow: 0 0 0 2px #000, 0 30px 80px rgba(0,0,0,0.4);
+        overflow: hidden;
+      }
+    }
+
+    /* ── Page container ── */
+    #app {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--color-bg);
+    }
+
+    /* ── Individual pages ── */
+    .page {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-bg);
+      transform: translateX(100%);
+      transition: transform 380ms cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: transform;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .page.active         { transform: translateX(0); }
+    .page.exit-to-left   { transform: translateX(-100%); }
+  </style>
+</head>
+<body>
+  <div id="phone-wrapper">
+    <div id="app">
+      <!-- pages injected here by JS -->
+    </div>
+  </div>
+  <script>
+    // JS goes here (later tasks)
+  </script>
+</body>
+</html>
