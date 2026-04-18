@@ -123,7 +123,7 @@
       padding: 16px;
       background: var(--color-cta-bg);
       color: var(--color-cta-text);
-      font-size: 17px;
+      font-size: 19px;
       font-weight: 700;
       border: none;
       border-radius: 16px;
@@ -147,7 +147,7 @@
       padding: 14px;
       background: transparent;
       color: var(--color-text-primary);
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 500;
       border: 2px solid var(--color-border);
       border-radius: 16px;
@@ -166,7 +166,7 @@
       border: none;
       border-bottom: 2px solid var(--color-input-line);
       padding: 8px 0;
-      font-size: 28px;
+      font-size: 34px;
       font-weight: 700;
       color: var(--color-input-text);
       outline: none;
@@ -174,7 +174,7 @@
     }
     .input-underline::placeholder { color: var(--color-text-hint); font-weight: 400; }
     .input-sm {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 500;
     }
 
@@ -185,7 +185,7 @@
       cursor: pointer;
       padding: 8px;
       color: var(--color-text-secondary);
-      font-size: 20px;
+      font-size: 24px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -260,7 +260,7 @@
       border-radius: 12px;
       border: none;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 500;
       transition: background 150ms, color 150ms, transform 150ms ease-out;
       background: var(--color-toggle-idle-bg);
@@ -285,14 +285,14 @@
     .expense-row.collapsing {
       animation: row-collapse 200ms ease-in forwards;
     }
-    .expense-row .input-underline { font-size: 17px; }
+    .expense-row .input-underline { font-size: 19px; }
     .expense-row .amount-input    { width: 90px; flex-shrink: 0; }
     .btn-delete-row {
       background: none;
       border: none;
       cursor: pointer;
       color: var(--color-text-hint);
-      font-size: 20px;
+      font-size: 22px;
       padding: 4px;
       line-height: 1;
       border-radius: 50%;
@@ -305,7 +305,7 @@
       border: none;
       cursor: pointer;
       color: var(--color-input-line);
-      font-size: 15px;
+      font-size: 17px;
       font-weight: 500;
       padding: 8px 0;
       text-align: left;
@@ -333,7 +333,7 @@
     }
     .loading-text-wrap { position: relative; height: 2.2em; text-align: center; width: 100%; }
     .loading-text {
-      font-size: 22px;
+      font-size: 26px;
       font-weight: 500;
       color: var(--color-text-primary);
       position: absolute;
@@ -373,7 +373,7 @@
 
     /* ── Step 4 Results ── */
     .result-summary {
-      font-size: 15px;
+      font-size: 17px;
       color: var(--color-text-secondary);
       line-height: 1.6;
     }
@@ -382,14 +382,14 @@
     .detail-table td {
       padding: 12px 0;
       border-bottom: 1px solid var(--color-border);
-      font-size: 15px;
+      font-size: 17px;
       vertical-align: middle;
     }
     .detail-table tr:last-child td { border-bottom: none; }
     .detail-row-name   { font-weight: 500; color: var(--color-text-primary); }
     .detail-row-amount { text-align: right; font-weight: 700; color: var(--color-input-text); }
     .section-title {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
@@ -397,11 +397,11 @@
       margin-bottom: 12px;
     }
     .share-row { display: flex; gap: 10px; }
-    .share-row .btn-secondary { font-size: 14px; padding: 12px 8px; }
+    .share-row .btn-secondary { font-size: 16px; padding: 12px 8px; }
     .even-banner {
       text-align: center;
       padding: 40px 20px;
-      font-size: 24px;
+      font-size: 28px;
       font-weight: 700;
       color: var(--color-cta-bg);
       line-height: 1.6;
@@ -455,7 +455,7 @@
         </div>
         <div class="page-content" style="justify-content: center; flex: 1;">
           <div>
-            <p style="font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 12px;">我去咗</p>
+            <p style="font-size: 26px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 12px;">我去咗</p>
             <input
               id="input-activity"
               class="input-underline"
@@ -495,11 +495,11 @@
               autocorrect="off"
               oninput="onMemberNameInput()"
             >
-            <p style="margin-top: 8px; font-size: 16px; color: var(--color-text-secondary);">都有去</p>
+            <p style="margin-top: 8px; font-size: 18px; color: var(--color-text-secondary);">都有去</p>
           </div>
 
           <div>
-            <p style="font-size: 16px; margin-bottom: 10px; color: var(--color-text-primary);">佢有冇幫手買嘢？</p>
+            <p style="font-size: 18px; margin-bottom: 10px; color: var(--color-text-primary);">佢有冇幫手買嘢？</p>
             <div class="toggle-group">
               <button class="toggle-btn active" id="toggle-has" onclick="setHasExpenses(true)">有，佢幫手買咗</button>
               <button class="toggle-btn"        id="toggle-no"  onclick="setHasExpenses(false)">佢無幫手買嘢</button>
@@ -507,7 +507,7 @@
           </div>
 
           <div id="expense-section" class="expense-section" style="max-height: 600px; opacity: 1;">
-            <p style="font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 12px;">佢幫手買咗</p>
+            <p style="font-size: 21px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 12px;">佢幫手買咗</p>
             <div id="expense-rows"></div>
             <button class="btn-add-expense" onclick="addExpenseRow()">＋ 再加一項開支</button>
           </div>
@@ -788,12 +788,12 @@
           <input class="input-underline input-sm" type="text" placeholder="嘢飲"
             value="${escHtml(exp.item)}" maxlength="30" autocomplete="off"
             oninput="updateExpenseItem(${i}, this.value)">
-          <span style="color:var(--color-text-secondary);font-size:15px;flex-shrink:0;">洗咗</span>
+          <span style="color:var(--color-text-secondary);font-size:17px;flex-shrink:0;">洗咗</span>
           <input class="input-underline input-sm amount-input" type="number" placeholder="0"
             value="${exp.amount}" min="0.01" step="0.01"
             onkeydown="return !['e','E','+','-'].includes(event.key)"
             oninput="updateExpenseAmount(${i}, this.value)">
-          <span style="color:var(--color-text-secondary);font-size:15px;flex-shrink:0;">蚊</span>
+          <span style="color:var(--color-text-secondary);font-size:17px;flex-shrink:0;">蚊</span>
           <button class="btn-delete-row" onclick="deleteExpenseRow(${i})">×</button>
         `;
         container.appendChild(row);
@@ -1054,7 +1054,7 @@
           <text
             x="${lx}" y="${ly}"
             text-anchor="middle"
-            font-size="${n >= 7 ? 10 : 12}"
+            font-size="${n >= 7 ? 11 : 14}"
             font-weight="500"
             fill="var(--color-amount-label)"
             style="opacity:0; animation: label-fade 300ms ease-out ${labelDelay}ms forwards;"
@@ -1068,7 +1068,7 @@
         const color   = NODE_COLORS[i % NODE_COLORS.length];
         const initial = m.name.charAt(0);
         const delay   = i * 80;
-        const fontSize = nodeR > 28 ? 18 : 14;
+        const fontSize = nodeR > 28 ? 20 : 16;
         nodeSVG += `
           <g style="transform-origin: ${x.toFixed(1)}px ${y.toFixed(1)}px; animation: node-pop 400ms cubic-bezier(0.34,1.56,0.64,1) ${delay}ms both;">
             <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${nodeR}" fill="${color}" />
@@ -1077,7 +1077,7 @@
                   font-size="${fontSize}" font-weight="700" fill="var(--color-node-text)"
                   style="opacity:0; animation: label-fade 200ms ease-out ${delay + 350}ms forwards;">${escHtml(initial)}</text>
             <text x="${x.toFixed(1)}" y="${(y + nodeR + 18).toFixed(1)}" text-anchor="middle"
-                  font-size="12" font-weight="500" fill="var(--color-text-secondary)"
+                  font-size="13" font-weight="500" fill="var(--color-text-secondary)"
                   style="opacity:0; animation: label-fade 200ms ease-out ${delay + 350}ms forwards;">${escHtml(m.name)}</text>
           </g>
         `;
@@ -1100,7 +1100,7 @@
 
       html += `
         <div>
-          <h2 style="font-size:24px;margin-bottom:8px;">${escHtml(state.activity)}</h2>
+          <h2 style="font-size:28px;margin-bottom:8px;">${escHtml(state.activity)}</h2>
           <p class="result-summary">
             <strong>${members.length}</strong> 個人去咗，共花咗 <strong>$${total.toFixed(2)}</strong>，每人應付 <strong>$${perPerson.toFixed(2)}</strong>
           </p>
