@@ -299,6 +299,72 @@
       el.classList.add('shake');
       el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
     }
+
+    // ── Router ──────────────────────────────────────────────
+    const pageHistory = [];
+
+    function navigateTo(pageId) {
+      const current = document.querySelector('.page.active');
+      const next    = document.getElementById(pageId);
+      if (!next || (current && current.id === pageId)) return;
+
+      if (current) {
+        current.classList.add('exit-to-left');
+        current.classList.remove('active');
+        current.addEventListener('transitionend', () => {
+          current.classList.remove('exit-to-left');
+        }, { once: true });
+      }
+
+      next.style.transform = 'translateX(100%)';
+      next.classList.add('active');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          next.style.transform = '';
+        });
+      });
+
+      pageHistory.push(pageId);
+      updateBackBtn();
+    }
+
+    function navigateBack() {
+      if (pageHistory.length <= 1) return;
+      pageHistory.pop();
+      const prevId = pageHistory[pageHistory.length - 1];
+
+      const current = document.querySelector('.page.active');
+      const prev    = document.getElementById(prevId);
+      if (!prev || !current) return;
+
+      prev.style.transform   = 'translateX(-100%)';
+      prev.style.transition  = 'none';
+      prev.classList.add('active');
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          current.style.transition = 'transform 380ms cubic-bezier(0.4, 0, 0.2, 1)';
+          current.style.transform  = 'translateX(100%)';
+          prev.style.transition    = 'transform 380ms cubic-bezier(0.4, 0, 0.2, 1)';
+          prev.style.transform     = 'translateX(0)';
+        });
+      });
+
+      current.addEventListener('transitionend', () => {
+        current.classList.remove('active');
+        current.style.transform  = '';
+        current.style.transition = '';
+        prev.style.transition    = '';
+      }, { once: true });
+
+      updateBackBtn();
+    }
+
+    function updateBackBtn() {
+      document.querySelectorAll('.btn-back').forEach(b => {
+        b.style.visibility = (pageHistory.length > 1) ? 'visible' : 'hidden';
+      });
+    }
   </script>
 </body>
 </html>
