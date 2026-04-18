@@ -794,7 +794,58 @@
       }, 2500);
     }
 
-    function computeSplitResult(members) { return { members, total: 0, perPerson: 0, paid: [], transactions: [] }; }
+    // ── Algorithm ────────────────────────────────────────────
+    function round2(n) { return Math.round(n * 100) / 100; }
+
+    function computeSplitResult(members) {
+      const n = members.length;
+      const paid = members.map(m =>
+        m.expenses.reduce((sum, e) => sum + e.amount, 0)
+      );
+      const total     = round2(paid.reduce((a, b) => a + b, 0));
+      const perPerson = round2(total / n);
+      const balance   = paid.map((p, i) => ({ name: members[i].name, bal: round2(p - perPerson) }));
+
+      const transactions = [];
+      const pos = balance.filter(b => b.bal >  0.005).map(b => ({ ...b }));
+      const neg = balance.filter(b => b.bal < -0.005).map(b => ({ ...b }));
+      pos.sort((a, b) => b.bal - a.bal);
+      neg.sort((a, b) => a.bal - b.bal);
+
+      let pi = 0, ni = 0;
+      while (pi < pos.length && ni < neg.length) {
+        const creditor = pos[pi];
+        const debtor   = neg[ni];
+        const amount   = round2(Math.min(creditor.bal, -debtor.bal));
+        if (amount > 0) {
+          transactions.push({ from: debtor.name, to: creditor.name, amount });
+        }
+        creditor.bal = round2(creditor.bal - amount);
+        debtor.bal   = round2(debtor.bal   + amount);
+        if (Math.abs(creditor.bal) < 0.01) pi++;
+        if (Math.abs(debtor.bal)   < 0.01) ni++;
+      }
+
+      return { members, total, perPerson, paid, transactions };
+    }
+
+    // Inline verification
+    (function verifyAlgorithm() {
+      const testMembers = [
+        { name: 'A', expenses: [{ item: 'x', amount: 10 }] },
+        { name: 'B', expenses: [{ item: 'y', amount: 20 }] },
+        { name: 'C', expenses: [] },
+      ];
+      const r = computeSplitResult(testMembers);
+      console.assert(r.transactions.length === 1, 'Should have 1 transaction');
+      console.assert(r.transactions[0].from   === 'C', 'C should pay');
+      console.assert(r.transactions[0].to     === 'B', 'B should receive');
+      console.assert(r.transactions[0].amount === 10,  'Amount should be 10');
+      console.assert(r.total     === 30, 'Total should be 30');
+      console.assert(r.perPerson === 10, 'Per person should be 10');
+      console.log('[✓] Algorithm test passed');
+    })();
+
     function renderResultsPage(result) {}
   </script>
 </body>
