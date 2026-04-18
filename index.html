@@ -274,6 +274,53 @@
       font-weight: 700;
     }
     .toggle-btn:active { transform: scale(0.95); }
+
+    /* ── Step 2 specific ── */
+    .expense-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: row-expand 250ms ease-out both;
+    }
+    .expense-row.collapsing {
+      animation: row-collapse 200ms ease-in forwards;
+    }
+    .expense-row .input-underline { font-size: 17px; }
+    .expense-row .amount-input    { width: 90px; flex-shrink: 0; }
+    .btn-delete-row {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--color-text-hint);
+      font-size: 20px;
+      padding: 4px;
+      line-height: 1;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: color 150ms;
+    }
+    .btn-delete-row:hover { color: #FF4949; }
+    .btn-add-expense {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--color-input-line);
+      font-size: 15px;
+      font-weight: 500;
+      padding: 8px 0;
+      text-align: left;
+      transition: opacity 150ms;
+    }
+    .btn-add-expense:hover { opacity: 0.75; }
+    .expense-section {
+      overflow: hidden;
+      transition: max-height 250ms ease-out, opacity 250ms ease-out;
+    }
+    .expense-section.hidden {
+      max-height: 0 !important;
+      opacity: 0;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -300,6 +347,47 @@
         </div>
         <div class="page-footer">
           <button class="btn-cta" id="btn-step1-next" onclick="step1Next()">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Member + Expenses -->
+      <div class="page" id="page-step2">
+        <div class="page-header">
+          <button class="btn-back" onclick="step2Back()">←</button>
+        </div>
+        <div class="page-content">
+          <div>
+            <input
+              id="input-member-name"
+              class="input-underline"
+              type="text"
+              placeholder="陳小明"
+              maxlength="20"
+              autocomplete="off"
+              autocorrect="off"
+              oninput="onMemberNameInput()"
+            >
+            <p style="margin-top: 8px; font-size: 16px; color: var(--color-text-secondary);">都有去</p>
+          </div>
+
+          <div>
+            <p style="font-size: 16px; margin-bottom: 10px; color: var(--color-text-primary);">佢有冇幫手買嘢？</p>
+            <div class="toggle-group">
+              <button class="toggle-btn active" id="toggle-has" onclick="setHasExpenses(true)">有，佢幫手買咗</button>
+              <button class="toggle-btn"        id="toggle-no"  onclick="setHasExpenses(false)">佢無幫手買嘢</button>
+            </div>
+          </div>
+
+          <div id="expense-section" class="expense-section" style="max-height: 600px; opacity: 1;">
+            <p style="font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 12px;">佢幫手買咗</p>
+            <div id="expense-rows"></div>
+            <button class="btn-add-expense" onclick="addExpenseRow()">＋ 再加一項開支</button>
+          </div>
+        </div>
+        <div class="page-footer">
+          <button class="btn-cta" onclick="step2AddAnother()">仲有其他人有去</button>
+          <button class="btn-cta" id="btn-calculate" onclick="step2Calculate()" style="display:none;" class="slide-up">齊人！計數 🎉</button>
+          <button class="btn-secondary" onclick="step2Back()">← 返回</button>
         </div>
       </div>
     </div>
@@ -451,8 +539,188 @@
 
     // stub — will be replaced in Task 8
     function loadFromHash() {}
-    // stub — will be replaced in Task 5
-    function resetStep2() {}
+    // ── Step 2 ───────────────────────────────────────────────
+    function resetStep2() {
+      state.currentMember = { name: '', hasExpenses: true, expenses: [{ item: '', amount: '' }] };
+      const nameInput = document.getElementById('input-member-name');
+      if (nameInput) nameInput.value = '';
+
+      const toggleHas = document.getElementById('toggle-has');
+      const toggleNo  = document.getElementById('toggle-no');
+      if (toggleHas) { toggleHas.classList.add('active'); toggleNo.classList.remove('active'); }
+
+      const section = document.getElementById('expense-section');
+      if (section) { section.classList.remove('hidden'); section.style.maxHeight = '600px'; section.style.opacity = '1'; }
+
+      renderExpenseRows();
+      updateCalculateBtn();
+    }
+
+    function onMemberNameInput() {
+      state.currentMember.name = document.getElementById('input-member-name').value.trim();
+    }
+
+    function setHasExpenses(has) {
+      state.currentMember.hasExpenses = has;
+      document.getElementById('toggle-has').classList.toggle('active', has);
+      document.getElementById('toggle-no').classList.toggle('active', !has);
+      const section = document.getElementById('expense-section');
+      if (has) {
+        section.classList.remove('hidden');
+        section.style.maxHeight = '600px';
+        section.style.opacity   = '1';
+        if (state.currentMember.expenses.length === 0) {
+          state.currentMember.expenses = [{ item: '', amount: '' }];
+          renderExpenseRows();
+        }
+      } else {
+        section.classList.add('hidden');
+      }
+    }
+
+    function renderExpenseRows() {
+      const container = document.getElementById('expense-rows');
+      if (!container) return;
+      container.innerHTML = '';
+      state.currentMember.expenses.forEach((exp, i) => {
+        const row = document.createElement('div');
+        row.className = 'expense-row';
+        row.dataset.index = i;
+        row.innerHTML = `
+          <input class="input-underline input-sm" type="text" placeholder="嘢飲"
+            value="${escHtml(exp.item)}" maxlength="30" autocomplete="off"
+            oninput="updateExpenseItem(${i}, this.value)">
+          <span style="color:var(--color-text-secondary);font-size:15px;flex-shrink:0;">洗咗</span>
+          <input class="input-underline input-sm amount-input" type="number" placeholder="0"
+            value="${exp.amount}" min="0.01" step="0.01"
+            onkeydown="return !['e','E','+','-'].includes(event.key)"
+            oninput="updateExpenseAmount(${i}, this.value)">
+          <span style="color:var(--color-text-secondary);font-size:15px;flex-shrink:0;">蚊</span>
+          <button class="btn-delete-row" onclick="deleteExpenseRow(${i})">×</button>
+        `;
+        container.appendChild(row);
+        if (state.currentMember.expenses.length === 1) {
+          row.querySelector('.btn-delete-row').style.visibility = 'hidden';
+        }
+      });
+    }
+
+    function updateExpenseItem(i, val)   { state.currentMember.expenses[i].item   = val; }
+    function updateExpenseAmount(i, val) { state.currentMember.expenses[i].amount = val; }
+
+    function addExpenseRow() {
+      state.currentMember.expenses.push({ item: '', amount: '' });
+      renderExpenseRows();
+      const rows = document.querySelectorAll('#expense-rows .expense-row');
+      const last = rows[rows.length - 1];
+      if (last) { last.style.animation = 'none'; void last.offsetWidth; last.style.animation = ''; }
+      document.querySelectorAll('#expense-rows .btn-delete-row').forEach(b => b.style.visibility = 'visible');
+    }
+
+    function deleteExpenseRow(i) {
+      if (state.currentMember.expenses.length <= 1) return;
+      const rows = document.querySelectorAll('#expense-rows .expense-row');
+      const row  = rows[i];
+      if (!row) return;
+      row.classList.add('collapsing');
+      row.addEventListener('animationend', () => {
+        state.currentMember.expenses.splice(i, 1);
+        renderExpenseRows();
+      }, { once: true });
+    }
+
+    function validateCurrentMember() {
+      const name = document.getElementById('input-member-name').value.trim();
+      if (!name) {
+        triggerShake(document.getElementById('input-member-name'));
+        showToast('請填寫成員姓名');
+        return false;
+      }
+      if (state.members.some(m => m.name === name)) {
+        triggerShake(document.getElementById('input-member-name'));
+        showToast('呢個名已經有人用咗！');
+        return false;
+      }
+      if (state.currentMember.hasExpenses) {
+        for (let i = 0; i < state.currentMember.expenses.length; i++) {
+          const exp = state.currentMember.expenses[i];
+          const amt = parseFloat(exp.amount);
+          if (!exp.item.trim()) {
+            const rows = document.querySelectorAll('#expense-rows .expense-row');
+            if (rows[i]) triggerShake(rows[i]);
+            showToast('請填寫開支名稱');
+            return false;
+          }
+          if (isNaN(amt) || amt <= 0) {
+            const rows = document.querySelectorAll('#expense-rows .expense-row');
+            if (rows[i]) triggerShake(rows[i]);
+            showToast('開支金額必須大於 $0');
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    function commitCurrentMember() {
+      const name = document.getElementById('input-member-name').value.trim();
+      const expenses = state.currentMember.hasExpenses
+        ? state.currentMember.expenses.map(e => ({ item: e.item.trim(), amount: parseFloat(e.amount) }))
+        : [];
+      state.members.push({ name, expenses });
+    }
+
+    function updateCalculateBtn() {
+      const btn = document.getElementById('btn-calculate');
+      if (!btn) return;
+      const shouldShow = state.members.length >= 1;
+      if (shouldShow && btn.style.display === 'none') {
+        btn.style.display = 'block';
+        btn.classList.add('slide-up');
+        btn.addEventListener('animationend', () => btn.classList.remove('slide-up'), { once: true });
+      } else if (!shouldShow) {
+        btn.style.display = 'none';
+      }
+    }
+
+    function step2AddAnother() {
+      if (!validateCurrentMember()) return;
+      commitCurrentMember();
+      updateCalculateBtn();
+      resetStep2();
+      const page = document.getElementById('page-step2');
+      page.style.transition = 'none';
+      page.style.transform  = 'translateX(100%)';
+      void page.offsetWidth;
+      page.style.transition = 'transform 380ms cubic-bezier(0.4, 0, 0.2, 1)';
+      page.style.transform  = 'translateX(0)';
+      page.addEventListener('transitionend', () => { page.style.transition = ''; page.style.transform = ''; }, { once: true });
+    }
+
+    function step2Calculate() {
+      if (!validateCurrentMember()) return;
+      commitCurrentMember();
+      if (state.members.length < 2) {
+        showToast('至少要有 2 個人先可以計數！');
+        state.members.pop();
+        return;
+      }
+      navigateTo('page-step3');
+      startLoading();
+    }
+
+    function step2Back() {
+      if (state.members.length === 0) {
+        navigateBack();
+      } else {
+        state.members.pop();
+        resetStep2();
+        updateCalculateBtn();
+        navigateBack();
+      }
+    }
+
+    function startLoading() {}
   </script>
 </body>
 </html>
