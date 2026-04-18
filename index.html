@@ -355,6 +355,21 @@
       0%, 80%, 100% { transform: translateY(0); }
       40%           { transform: translateY(-12px); }
     }
+
+    /* ── SVG Graph ── */
+    .graph-svg { width: 100%; overflow: visible; }
+    @keyframes node-pop {
+      0%   { transform: scale(0);    opacity: 0; }
+      70%  { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1);    opacity: 1; }
+    }
+    @keyframes draw-edge {
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes label-fade {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
@@ -878,6 +893,100 @@
       console.assert(r.perPerson === 10, 'Per person should be 10');
       console.log('[✓] Algorithm test passed');
     })();
+
+    // ── SVG Graph ─────────────────────────────────────────────
+    const NODE_COLORS = ['#58CC02','#1899D6','#FF9600','#CE82FF','#FF4B4B','#00CD9C','#FF86D0'];
+
+    function buildGraphSVG(members, transactions) {
+      const n     = members.length;
+      const W     = 320;
+      const cx    = W / 2;
+      const R     = n <= 2 ? 0 : Math.min(110, 40 + n * 14);
+      const nodeR = n >= 7 ? 26 : 30;
+      const H     = n <= 2 ? 180 : R * 2 + nodeR * 2 + 60;
+
+      const positions = members.map((_, i) => {
+        if (n === 1) return { x: cx, y: H / 2 };
+        if (n === 2) return i === 0 ? { x: cx - 100, y: H / 2 } : { x: cx + 100, y: H / 2 };
+        const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+        return { x: cx + R * Math.cos(angle), y: H / 2 + R * Math.sin(angle) };
+      });
+
+      let edgeSVG = '', labelSVG = '';
+      let allNodesDelay = n * 80 + 100;
+
+      transactions.forEach((t, idx) => {
+        const fromIdx = members.findIndex(m => m.name === t.from);
+        const toIdx   = members.findIndex(m => m.name === t.to);
+        if (fromIdx < 0 || toIdx < 0) return;
+        const p1 = positions[fromIdx], p2 = positions[toIdx];
+
+        const dx = p2.x - p1.x, dy = p2.y - p1.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 1) return;
+        const ux = dx / dist, uy = dy / dist;
+        const x1 = p1.x + ux * (nodeR + 4), y1 = p1.y + uy * (nodeR + 4);
+        const x2 = p2.x - ux * (nodeR + 10), y2 = p2.y - uy * (nodeR + 10);
+
+        const edgeLen   = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+        const edgeDelay = allNodesDelay + idx * 100;
+        const labelDelay = edgeDelay + 500 + 80;
+
+        edgeSVG += `
+          <defs>
+            <marker id="arrow-${idx}" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="var(--color-arrow)" />
+            </marker>
+          </defs>
+          <line
+            x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"
+            stroke="var(--color-arrow)" stroke-width="2"
+            marker-end="url(#arrow-${idx})"
+            stroke-dasharray="${edgeLen.toFixed(1)}"
+            stroke-dashoffset="${edgeLen.toFixed(1)}"
+            style="animation: draw-edge 500ms ease-out ${edgeDelay}ms forwards;"
+          />
+        `;
+        const lx = ((x1 + x2) / 2).toFixed(1);
+        const ly = (((y1 + y2) / 2) - 6).toFixed(1);
+        labelSVG += `
+          <text
+            x="${lx}" y="${ly}"
+            text-anchor="middle"
+            font-size="${n >= 7 ? 10 : 12}"
+            font-weight="500"
+            fill="var(--color-amount-label)"
+            style="opacity:0; animation: label-fade 300ms ease-out ${labelDelay}ms forwards;"
+          >$${t.amount.toFixed(2)}</text>
+        `;
+      });
+
+      let nodeSVG = '';
+      members.forEach((m, i) => {
+        const { x, y } = positions[i];
+        const color   = NODE_COLORS[i % NODE_COLORS.length];
+        const initial = m.name.charAt(0);
+        const delay   = i * 80;
+        const fontSize = nodeR > 28 ? 18 : 14;
+        nodeSVG += `
+          <g style="transform-origin: ${x.toFixed(1)}px ${y.toFixed(1)}px; animation: node-pop 400ms cubic-bezier(0.34,1.56,0.64,1) ${delay}ms both;">
+            <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${nodeR}" fill="${color}" />
+            <text x="${x.toFixed(1)}" y="${(y + 6).toFixed(1)}" text-anchor="middle"
+                  dominant-baseline="middle"
+                  font-size="${fontSize}" font-weight="700" fill="var(--color-node-text)"
+                  style="opacity:0; animation: label-fade 200ms ease-out ${delay + 350}ms forwards;">${escHtml(initial)}</text>
+            <text x="${x.toFixed(1)}" y="${(y + nodeR + 18).toFixed(1)}" text-anchor="middle"
+                  font-size="12" font-weight="500" fill="var(--color-text-secondary)"
+                  style="opacity:0; animation: label-fade 200ms ease-out ${delay + 350}ms forwards;">${escHtml(m.name)}</text>
+          </g>
+        `;
+      });
+
+      return {
+        svg: `<svg class="graph-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${edgeSVG}${nodeSVG}${labelSVG}</svg>`,
+        totalDelay: allNodesDelay + transactions.length * 100 + 600
+      };
+    }
 
     function renderResultsPage(result) {}
   </script>
