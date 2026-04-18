@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>分賬</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     /* ── CSS Variables ── */
     :root {
@@ -1416,33 +1415,53 @@
     }
 
     function exportPNG() {
-      const content = document.getElementById('results-content');
-      if (!content || typeof html2canvas === 'undefined') {
-        showToast('無法匯出圖片');
-        return;
-      }
-      html2canvas(content, {
-        backgroundColor: '#FFFFFF',
-        scale: 2,
-        useCORS: true,
-        onclone: (doc) => {
-          const root = doc.documentElement;
-          root.style.setProperty('--color-bg',            '#FFFFFF');
-          root.style.setProperty('--color-text-primary',  '#1A1A1A');
-          root.style.setProperty('--color-text-secondary','#6B6B6B');
-          root.style.setProperty('--color-border',        '#E5E5E5');
-          root.style.setProperty('--color-arrow',         '#AFAFAF');
-          root.style.setProperty('--color-amount-label',  '#4B4B4B');
-          root.style.setProperty('--color-input-text',    '#58A700');
-          root.style.setProperty('--color-text-hint',     '#AFAFAF');
-          root.style.setProperty('--color-cta-bg',        '#58CC02');
+      const container = document.getElementById('graph-container');
+      const svg = container ? container.querySelector('svg.graph-svg') : null;
+      if (!svg) { showToast('無關係圖可匯出'); return; }
+
+      const clone = svg.cloneNode(true);
+
+      // Inject light-mode variables so CSS vars resolve correctly inside the SVG image
+      const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+      styleEl.textContent = `
+        :root, svg {
+          --color-bg: #FFFFFF; --color-arrow: #AFAFAF; --color-border: #E5E5E5;
+          --color-node-text: #FFFFFF; --color-text-secondary: #6B6B6B;
+          --color-cta-bg: #58CC02; --color-amount-label: #58CC02;
+          --color-text-primary: #1A1A1A;
         }
-      }).then(canvas => {
+      `;
+      clone.insertBefore(styleEl, clone.firstChild);
+
+      const vb   = svg.viewBox.baseVal;
+      const PAD  = 28;
+      const scale = 2;
+      const W = vb.width  + PAD * 2;
+      const H = vb.height + PAD * 2;
+      clone.setAttribute('viewBox', `${vb.x - PAD} ${vb.y - PAD} ${W} ${H}`);
+      clone.setAttribute('width',  W);
+      clone.setAttribute('height', H);
+
+      const svgStr = new XMLSerializer().serializeToString(clone);
+      const url = URL.createObjectURL(new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' }));
+
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width  = W * scale;
+        canvas.height = H * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
         const link = document.createElement('a');
-        link.download = `${state.activity || '分賬'}.png`;
+        link.download = `${state.activity || '找數圖'}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
-      }).catch(() => showToast('匯出失敗，請重試'));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); showToast('匯出失敗，請重試'); };
+      img.src = url;
     }
 
     // ── Confetti ──────────────────────────────────────────────
