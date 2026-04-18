@@ -269,7 +269,7 @@
     .input-name {
       display: inline-block;
       width: auto;
-      min-width: 3.5em;
+      min-width: 2ch;
       max-width: 170px;
       font-size: inherit;
       font-weight: 700;
@@ -811,6 +811,7 @@
       }
       window.resizeNameInput = resizeNameInput;
       nameInput.placeholder = pickNamePlaceholder();
+      resizeNameInput();
       nameInput.addEventListener('input', resizeNameInput);
       resizeNameInput();
       nameInput.addEventListener('keydown', e => {
