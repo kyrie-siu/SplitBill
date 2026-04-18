@@ -428,6 +428,15 @@
       z-index: 9998;
       will-change: transform, opacity;
     }
+
+    /* ── Progress dots ── */
+    .progress-dots { display: flex; gap: 6px; margin-left: auto; }
+    .progress-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--color-border);
+      transition: background 300ms;
+    }
+    .progress-dot.active { background: var(--color-cta-bg); }
   </style>
 </head>
 <body>
@@ -437,6 +446,12 @@
       <div class="page active" id="page-step1">
         <div class="page-header">
           <button class="btn-back" onclick="navigateBack()" style="visibility:hidden;">←</button>
+          <div class="progress-dots">
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+          </div>
         </div>
         <div class="page-content" style="justify-content: center; flex: 1;">
           <div>
@@ -461,6 +476,12 @@
       <div class="page" id="page-step2">
         <div class="page-header">
           <button class="btn-back" onclick="step2Back()">←</button>
+          <div class="progress-dots">
+            <div class="progress-dot active"></div>
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+          </div>
         </div>
         <div class="page-content">
           <div>
@@ -517,6 +538,12 @@
       <div class="page" id="page-step4">
         <div class="page-header">
           <button class="btn-back" onclick="navigateBack()">←</button>
+          <div class="progress-dots">
+            <div class="progress-dot active"></div>
+            <div class="progress-dot active"></div>
+            <div class="progress-dot active"></div>
+            <div class="progress-dot active"></div>
+          </div>
         </div>
         <div class="page-content" id="results-content">
           <!-- populated by renderResultsPage() -->
@@ -662,6 +689,12 @@
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('input-activity').addEventListener('keydown', e => {
         if (e.key === 'Enter') step1Next();
+      });
+      document.getElementById('input-member-name').addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          const firstItem = document.querySelector('#expense-rows .expense-row input');
+          if (firstItem) firstItem.focus();
+        }
       });
       document.querySelectorAll('.btn-cta, .btn-secondary').forEach(addBtnPopEffect);
       pageHistory.push('page-step1');
