@@ -570,7 +570,7 @@
               id="input-member-name"
               class="input-underline input-inline input-name"
               type="text"
-              placeholder="陳小明"
+              placeholder="英秀"
               maxlength="20"
               autocomplete="off"
               autocorrect="off"
@@ -810,6 +810,7 @@
         nameInput.style.width = Math.max(70, nameInput.scrollWidth) + 'px';
       }
       window.resizeNameInput = resizeNameInput;
+      nameInput.placeholder = pickNamePlaceholder();
       nameInput.addEventListener('input', resizeNameInput);
       resizeNameInput();
       nameInput.addEventListener('keydown', e => {
@@ -922,10 +923,23 @@
     }
 
     // ── Step 2 ───────────────────────────────────────────────
+    const NAME_PLACEHOLDERS = ['英秀','一心','幼羚','家寶','思賢','有容','向華','修端','允行'];
+    function pickNamePlaceholder() {
+      const used = state.members.map(m => m.name);
+      const last = used[used.length - 1] || '';
+      const pool = NAME_PLACEHOLDERS.filter(n => n !== last && !used.includes(n));
+      const src  = pool.length ? pool : NAME_PLACEHOLDERS.filter(n => n !== last);
+      return src[Math.floor(Math.random() * src.length)] || NAME_PLACEHOLDERS[0];
+    }
+
     function resetStep2() {
       state.currentMember = { name: '', hasExpenses: true, expenses: [{ item: '', amount: '' }] };
       const nameInput = document.getElementById('input-member-name');
-      if (nameInput) { nameInput.value = ''; if (window.resizeNameInput) window.resizeNameInput(); }
+      if (nameInput) {
+        nameInput.value = '';
+        nameInput.placeholder = pickNamePlaceholder();
+        if (window.resizeNameInput) window.resizeNameInput();
+      }
 
       pickerHasExpenses = true;
       pickerIndex = 1;
