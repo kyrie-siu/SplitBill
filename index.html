@@ -586,8 +586,41 @@
       loadFromHash();
     });
 
-    // stub — will be replaced in Task 8
-    function loadFromHash() {}
+    // ── URL Hash Codec ───────────────────────────────────────
+    function encodeStateToHash() {
+      const data = { activity: state.activity, members: state.members };
+      try {
+        return '#data=' + btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+      } catch(e) { return ''; }
+    }
+
+    function decodeHashToState(hash) {
+      try {
+        if (!hash.startsWith('#data=')) return null;
+        const raw  = hash.slice(6);
+        const json = decodeURIComponent(escape(atob(raw)));
+        const data = JSON.parse(json);
+        if (!data.activity || !Array.isArray(data.members)) return null;
+        return data;
+      } catch(e) { return null; }
+    }
+
+    function loadFromHash() {
+      const hash = window.location.hash;
+      if (!hash.startsWith('#data=')) return;
+      const data = decodeHashToState(hash);
+      if (!data) return;
+      state.activity = data.activity;
+      state.members  = data.members;
+      const result = computeSplitResult(state.members);
+      renderResultsPage(result);
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-step4').classList.add('active');
+      pageHistory.length = 0;
+      pageHistory.push('page-step1');
+      pageHistory.push('page-step4');
+      updateBackBtn();
+    }
     // ── Step 2 ───────────────────────────────────────────────
     function resetStep2() {
       state.currentMember = { name: '', hasExpenses: true, expenses: [{ item: '', amount: '' }] };
