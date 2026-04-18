@@ -370,6 +370,53 @@
       from { opacity: 0; transform: translateY(4px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+
+    /* ── Step 4 Results ── */
+    .result-summary {
+      font-size: 15px;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+    .result-summary strong { color: var(--color-text-primary); font-weight: 700; }
+    .detail-table { width: 100%; border-collapse: collapse; }
+    .detail-table td {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 15px;
+      vertical-align: middle;
+    }
+    .detail-table tr:last-child td { border-bottom: none; }
+    .detail-row-name   { font-weight: 500; color: var(--color-text-primary); }
+    .detail-row-amount { text-align: right; font-weight: 700; color: var(--color-input-text); }
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-hint);
+      margin-bottom: 12px;
+    }
+    .share-row { display: flex; gap: 10px; }
+    .share-row .btn-secondary { font-size: 14px; padding: 12px 8px; }
+    .even-banner {
+      text-align: center;
+      padding: 40px 20px;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--color-cta-bg);
+      line-height: 1.6;
+    }
+
+    /* ── Even banner stagger ── */
+    @keyframes char-pop {
+      0%   { transform: scale(0) translateY(10px); opacity: 0; }
+      60%  { transform: scale(1.2) translateY(-2px); opacity: 1; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .char-span {
+      display: inline-block;
+      animation: char-pop 400ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
   </style>
 </head>
 <body>
@@ -452,6 +499,16 @@
             <div class="loading-dot"></div>
             <div class="loading-dot"></div>
           </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Results -->
+      <div class="page" id="page-step4">
+        <div class="page-header">
+          <button class="btn-back" onclick="navigateBack()">←</button>
+        </div>
+        <div class="page-content" id="results-content">
+          <!-- populated by renderResultsPage() -->
         </div>
       </div>
     </div>
@@ -988,7 +1045,79 @@
       };
     }
 
-    function renderResultsPage(result) {}
+    // ── Step 4 Render ─────────────────────────────────────────
+    function renderResultsPage(result) {
+      const { members, total, perPerson, paid, transactions } = result;
+      const container = document.getElementById('results-content');
+      if (!container) return;
+
+      const isAllEven = transactions.length === 0;
+      let html = '';
+
+      html += `
+        <div>
+          <h2 style="font-size:24px;margin-bottom:8px;">${escHtml(state.activity)}</h2>
+          <p class="result-summary">
+            <strong>${members.length}</strong> 個人去咗，共花咗 <strong>$${total.toFixed(2)}</strong>，每人應付 <strong>$${perPerson.toFixed(2)}</strong>
+          </p>
+        </div>
+      `;
+
+      if (isAllEven) {
+        const msg = '大家都唔駛俾錢！\nSuper！🎉';
+        const chars = msg.split('').map((c, i) => {
+          if (c === '\n') return '<br>';
+          return `<span class="char-span" style="animation-delay:${i * 40}ms">${escHtml(c)}</span>`;
+        }).join('');
+        html += `<div class="even-banner" id="even-banner">${chars}</div>`;
+      } else {
+        const { svg } = buildGraphSVG(members, transactions);
+        html += `<div id="graph-container" style="margin: 0 -4px;">${svg}</div>`;
+
+        html += `<div><p class="section-title">還款明細</p><table class="detail-table">`;
+        transactions.forEach((t, i) => {
+          html += `
+            <tr style="opacity:0; animation: label-fade 300ms ease-out ${i * 60 + 200}ms both;">
+              <td class="detail-row-name">${escHtml(t.from)} → ${escHtml(t.to)}</td>
+              <td class="detail-row-amount">$${t.amount.toFixed(2)}</td>
+            </tr>
+          `;
+        });
+        html += `</table></div>`;
+      }
+
+      html += `<div><p class="section-title">個人開支</p><table class="detail-table">`;
+      members.forEach((m, i) => {
+        html += `
+          <tr style="opacity:0; animation: label-fade 300ms ease-out ${(transactions.length + i) * 60 + 300}ms both;">
+            <td class="detail-row-name">${escHtml(m.name)}</td>
+            <td class="detail-row-amount">$${paid[i].toFixed(2)}</td>
+          </tr>
+        `;
+      });
+      html += `</table></div>`;
+
+      html += `
+        <div id="share-section">
+          <p class="section-title">分享</p>
+          <div class="share-row">
+            <button class="btn-secondary" id="btn-copy-link" onclick="copyShareLink()">🔗 複製連結</button>
+            <button class="btn-secondary" onclick="exportPNG()">🖼️ 儲存為圖片</button>
+          </div>
+        </div>
+        <div style="height: 20px;"></div>
+      `;
+
+      container.innerHTML = html;
+
+      if (isAllEven) {
+        setTimeout(launchConfetti, 400);
+      }
+    }
+
+    function copyShareLink() {}
+    function exportPNG() {}
+    function launchConfetti() {}
   </script>
 </body>
 </html>
