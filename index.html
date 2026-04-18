@@ -417,6 +417,17 @@
       display: inline-block;
       animation: char-pop 400ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
     }
+
+    /* ── Confetti ── */
+    .confetti-particle {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 9998;
+      will-change: transform, opacity;
+    }
   </style>
 </head>
 <body>
@@ -1166,7 +1177,43 @@
       }).catch(() => showToast('匯出失敗，請重試'));
     }
 
-    function launchConfetti() {}
+    // ── Confetti ──────────────────────────────────────────────
+    function launchConfetti() {
+      const COLORS = ['#58CC02','#FF9600','#CE82FF','#1899D6','#FF4B4B','#FFD700'];
+      const COUNT  = 80;
+
+      for (let i = 0; i < COUNT; i++) {
+        setTimeout(() => {
+          const el = document.createElement('div');
+          el.className = 'confetti-particle';
+          el.style.background = COLORS[Math.floor(Math.random() * COLORS.length)];
+          const startX = Math.random() * window.innerWidth;
+          el.style.left = startX + 'px';
+          el.style.top  = '-10px';
+          document.body.appendChild(el);
+
+          const drift = (Math.random() - 0.5) * 120;
+          const speed = 2 + Math.random() * 4;
+          const spin  = (Math.random() - 0.5) * 15;
+          let y = -10, offsetX = 0, rot = 0, opacity = 1;
+
+          function tick() {
+            y       += speed;
+            offsetX += drift * 0.01;
+            rot     += spin;
+            opacity -= 0.005;
+            el.style.transform = `translate(${offsetX}px, ${y + 10}px) rotate(${rot}deg)`;
+            el.style.opacity   = Math.max(0, opacity);
+            if (y < window.innerHeight + 20 && opacity > 0) {
+              requestAnimationFrame(tick);
+            } else {
+              el.remove();
+            }
+          }
+          requestAnimationFrame(tick);
+        }, i * 20);
+      }
+    }
   </script>
 </body>
 </html>
