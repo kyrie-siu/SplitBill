@@ -279,7 +279,29 @@
 <body>
   <div id="phone-wrapper">
     <div id="app">
-      <!-- pages injected here by JS -->
+      <!-- Step 1: Activity Name -->
+      <div class="page active" id="page-step1">
+        <div class="page-header">
+          <button class="btn-back" onclick="navigateBack()" style="visibility:hidden;">←</button>
+        </div>
+        <div class="page-content" style="justify-content: center; flex: 1;">
+          <div>
+            <p style="font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 12px;">我去咗</p>
+            <input
+              id="input-activity"
+              class="input-underline"
+              type="text"
+              placeholder="BBQ"
+              maxlength="40"
+              autocomplete="off"
+              autocorrect="off"
+            >
+          </div>
+        </div>
+        <div class="page-footer">
+          <button class="btn-cta" id="btn-step1-next" onclick="step1Next()">下一步 →</button>
+        </div>
+      </div>
     </div>
   </div>
   <script>
@@ -365,6 +387,72 @@
         b.style.visibility = (pageHistory.length > 1) ? 'visible' : 'hidden';
       });
     }
+
+    // ── App State ────────────────────────────────────────────
+    const state = {
+      activity: '',
+      members:  [],
+      currentMember: { name: '', hasExpenses: true, expenses: [{ item: '', amount: '' }] },
+    };
+
+    // ── Step 1 ───────────────────────────────────────────────
+    function step1Next() {
+      const input = document.getElementById('input-activity');
+      const val   = input.value.trim();
+      if (!val) {
+        triggerShake(input);
+        triggerShake(document.getElementById('btn-step1-next'));
+        input.focus();
+        return;
+      }
+      state.activity = val;
+      triggerPop(document.getElementById('btn-step1-next'));
+      resetStep2();
+      setTimeout(() => navigateTo('page-step2'), 80);
+    }
+
+    // ── Toast ─────────────────────────────────────────────────
+    function showToast(msg) {
+      let t = document.getElementById('toast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'toast';
+        Object.assign(t.style, {
+          position: 'fixed', bottom: '100px', left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#1A1A1A', color: '#fff',
+          padding: '10px 20px', borderRadius: '20px',
+          fontSize: '14px', fontWeight: '500',
+          zIndex: '9999', transition: 'opacity 300ms',
+          whiteSpace: 'nowrap',
+        });
+        document.body.appendChild(t);
+      }
+      t.textContent = msg;
+      t.style.opacity = '1';
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2000);
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── DOMContentLoaded init ─────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('input-activity').addEventListener('keydown', e => {
+        if (e.key === 'Enter') step1Next();
+      });
+      document.querySelectorAll('.btn-cta, .btn-secondary').forEach(addBtnPopEffect);
+      pageHistory.push('page-step1');
+      updateBackBtn();
+      loadFromHash();
+    });
+
+    // stub — will be replaced in Task 8
+    function loadFromHash() {}
+    // stub — will be replaced in Task 5
+    function resetStep2() {}
   </script>
 </body>
 </html>
