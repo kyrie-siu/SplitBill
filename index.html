@@ -110,7 +110,6 @@
       -webkit-overflow-scrolling: touch;
     }
     .page.active         { transform: translateX(0); }
-    .page.exit-to-left   { transform: translateX(-100%); }
 
     /* ── Typography ── */
     h1, h2 { font-weight: 700; color: var(--color-text-primary); }
@@ -164,7 +163,7 @@
       width: 100%;
       background: transparent;
       border: none;
-      border-bottom: 2px solid var(--color-input-line);
+      border-bottom: none;
       padding: 8px 0;
       font-size: 34px;
       font-weight: 700;
@@ -173,6 +172,16 @@
       caret-color: var(--color-input-line);
     }
     .input-underline::placeholder { color: var(--color-text-hint); font-weight: 400; }
+    .input-inline {
+      display: inline-block;
+      width: auto;
+      min-width: 80px;
+      max-width: 200px;
+      font-size: inherit;
+      font-weight: 700;
+      vertical-align: baseline;
+      padding: 0 4px 2px;
+    }
     .input-sm {
       font-size: 20px;
       font-weight: 500;
@@ -242,52 +251,96 @@
     .slide-up { animation: slide-up-fade 300ms ease-out both; }
 
     @keyframes row-expand {
-      from { max-height: 0; opacity: 0; overflow: hidden; }
-      to   { max-height: 100px; opacity: 1; overflow: hidden; }
-    }
-    @keyframes row-collapse {
-      from { max-height: 100px; opacity: 1; overflow: hidden; }
-      to   { max-height: 0;     opacity: 0; overflow: hidden; }
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ── Toggle group ── */
-    .toggle-group {
-      display: flex;
-      gap: 8px;
-    }
-    .toggle-btn {
-      flex: 1;
-      padding: 12px 8px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
+    /* ── Step 2 sentence layout ── */
+    .step2-form { display: flex; flex-direction: column; gap: 16px; }
+    .step2-line {
+      font-size: 26px;
       font-weight: 500;
-      transition: background 150ms, color 150ms, transform 150ms ease-out;
-      background: var(--color-toggle-idle-bg);
-      color: var(--color-toggle-idle-text);
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .toggle-btn.active {
-      background: var(--color-toggle-active-bg);
-      color: var(--color-toggle-active-text);
-      font-weight: 700;
-    }
-    .toggle-btn:active { transform: scale(0.95); }
-
-    /* ── Step 2 specific ── */
-    .expense-row {
+      color: var(--color-text-primary);
       display: flex;
       align-items: center;
-      gap: 10px;
-      animation: row-expand 250ms ease-out both;
+      flex-wrap: nowrap;
+      line-height: 1;
     }
-    .expense-row.collapsing {
-      animation: row-collapse 200ms ease-in forwards;
+    .input-name {
+      display: inline-block;
+      width: auto;
+      min-width: 3.5em;
+      max-width: 170px;
+      font-size: inherit;
+      font-weight: 700;
+      vertical-align: baseline;
+      padding: 0 4px;
+      margin: 0;
+      line-height: inherit;
     }
-    .expense-row .input-underline { font-size: 19px; }
-    .expense-row .amount-input    { width: 90px; flex-shrink: 0; }
+
+    /* ── Scroll Picker ── */
+    .scroll-picker {
+      display: inline-flex;
+      position: relative;
+      width: 52px;
+      height: 114px;
+      overflow: hidden;
+      cursor: pointer;
+      flex-shrink: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0 6px;
+    }
+    .picker-inner {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      will-change: transform;
+    }
+    .picker-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 38px;
+      font-size: 26px;
+      font-weight: 700;
+      flex-shrink: 0;
+      color: var(--color-text-primary);
+    }
+    .picker-dim { opacity: 0.2; }
+    .picker-selected { color: var(--color-input-text); }
+
+    /* ── Step 2 expense table ── */
+    .expense-row { animation: row-expand 250ms ease-out both; }
+    .expense-row.row-deleting { opacity: 0; transition: opacity 200ms ease-in; }
+    .expense-table-wrap {
+      border: 1.5px solid var(--color-border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .expense-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .expense-th {
+      text-align: left;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      padding: 10px 14px;
+      border-bottom: 1.5px solid var(--color-border);
+      letter-spacing: 0.02em;
+    }
+    .expense-th.th-del { width: 36px; }
+    .expense-row td { padding: 8px 14px; vertical-align: middle; }
+    .expense-row:not(:last-child) td { border-bottom: 1px solid var(--color-border); }
+    .expense-row td:last-child { width: 36px; padding-left: 4px; }
+    .expense-row .input-underline { font-size: 19px; border-bottom: none; padding: 0; }
+    .expense-row .amount-input { width: 80px; }
+    .amount-cell { display: flex; align-items: center; gap: 2px; }
+    .amount-dollar { color: var(--color-text-secondary); font-size: 17px; padding-bottom: 2px; }
     .btn-delete-row {
       background: none;
       border: none;
@@ -297,22 +350,38 @@
       padding: 4px;
       line-height: 1;
       border-radius: 50%;
-      flex-shrink: 0;
       transition: color 150ms;
     }
     .btn-delete-row:hover { color: #FF4949; }
+    .expense-add-row {
+      display: flex;
+      justify-content: flex-start;
+      padding: 8px 14px;
+      border-top: 1px solid var(--color-border);
+    }
     .btn-add-expense {
       background: none;
       border: none;
       cursor: pointer;
-      color: var(--color-input-line);
-      font-size: 17px;
-      font-weight: 500;
-      padding: 8px 0;
-      text-align: left;
-      transition: opacity 150ms;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
-    .btn-add-expense:hover { opacity: 0.75; }
+    .btn-add-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-cta-bg);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 400;
+      line-height: 1;
+      transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 150ms;
+    }
+    .btn-add-expense:hover .btn-add-icon { opacity: 0.85; }
+    .btn-add-expense:active .btn-add-icon { transform: scale(0.88); }
     .expense-section {
       overflow: hidden;
       transition: max-height 250ms ease-out, opacity 250ms ease-out;
@@ -382,7 +451,7 @@
     .result-summary strong { color: var(--color-text-primary); font-weight: 700; }
     .detail-table { width: 100%; border-collapse: collapse; }
     .detail-table td {
-      padding: 12px 0;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--color-border);
       font-size: 17px;
       vertical-align: middle;
@@ -390,6 +459,8 @@
     .detail-table tr:last-child td { border-bottom: none; }
     .detail-row-name   { font-weight: 500; color: var(--color-text-primary); }
     .detail-row-amount { text-align: right; font-weight: 700; color: var(--color-input-text); }
+    .detail-sub-name   { padding-left: 20px; font-size: 14px; color: var(--color-text-secondary); }
+    .detail-sub-amount { text-align: right; font-size: 14px; color: var(--color-text-secondary); }
     .section-title {
       font-size: 14px;
       font-weight: 700;
@@ -475,16 +546,15 @@
       <div class="page active" id="page-step1">
         <div class="page-content" style="justify-content: center; flex: 1;">
           <div>
-            <p style="font-size: 26px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 12px;">我去咗</p>
-            <input
+            <p style="font-size: 26px; font-weight: 500; color: var(--color-text-primary); line-height: 1.6;">我想幫一個<input
               id="input-activity"
-              class="input-underline"
+              class="input-underline input-inline"
               type="text"
               placeholder="BBQ"
               maxlength="40"
               autocomplete="off"
               autocorrect="off"
-            >
+            >活動拆賬</p>
           </div>
         </div>
         <div class="page-footer">
@@ -495,37 +565,45 @@
       <!-- Step 2: Member + Expenses -->
       <div class="page" id="page-step2">
         <div class="page-content">
-          <div>
-            <input
+          <div class="step2-form">
+            <p class="step2-line"><input
               id="input-member-name"
-              class="input-underline"
+              class="input-underline input-inline input-name"
               type="text"
               placeholder="陳小明"
               maxlength="20"
               autocomplete="off"
               autocorrect="off"
               oninput="onMemberNameInput()"
-            >
-            <p style="margin-top: 8px; font-size: 18px; color: var(--color-text-secondary);">都有去</p>
-          </div>
-
-          <div>
-            <p style="font-size: 18px; margin-bottom: 10px; color: var(--color-text-primary);">佢有冇幫手買嘢？</p>
-            <div class="toggle-group">
-              <button class="toggle-btn active" id="toggle-has" onclick="setHasExpenses(true)">有，佢幫手買咗</button>
-              <button class="toggle-btn"        id="toggle-no"  onclick="setHasExpenses(false)">佢無幫手買嘢</button>
-            </div>
+            >有份去，</p>
+            <p class="step2-line">佢<span class="scroll-picker" id="has-picker" role="button" tabindex="0">
+              <span class="picker-inner" id="picker-inner"></span>
+            </span>幫手買嘢</p>
           </div>
 
           <div id="expense-section" class="expense-section" style="max-height: 600px; opacity: 1;">
-            <p style="font-size: 21px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 12px;">佢幫手買咗</p>
-            <div id="expense-rows"></div>
-            <button class="btn-add-expense" onclick="addExpenseRow()">＋ 再加一項開支</button>
+            <div class="expense-table-wrap">
+              <table class="expense-table">
+                <thead>
+                  <tr>
+                    <th class="expense-th">買咗</th>
+                    <th class="expense-th">洗咗</th>
+                    <th class="expense-th th-del"></th>
+                  </tr>
+                </thead>
+                <tbody id="expense-rows"></tbody>
+              </table>
+              <div class="expense-add-row">
+                <button class="btn-add-expense" onclick="addExpenseRow()">
+                  <span class="btn-add-icon">+</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <div class="page-footer">
           <button class="btn-cta" onclick="step2AddAnother()">仲有其他人有去</button>
-          <button class="btn-cta" id="btn-calculate" onclick="step2Calculate()" style="display:none;" class="slide-up">齊人！計數 🎉</button>
+          <button class="btn-cta" id="btn-calculate" onclick="step2Calculate()" style="display:none;">齊人！計數 🎉</button>
           <button class="btn-secondary" onclick="step2Back()">← 返回</button>
         </div>
       </div>
@@ -574,25 +652,42 @@
     // ── Router ──────────────────────────────────────────────
     const pageHistory = [];
 
+    const SWIPE_EASE = 'transform 360ms cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+
+    function snapTo(el, transform) {
+      el.style.transition = 'none';
+      el.style.transform  = transform;
+      void el.offsetWidth;
+    }
+    function clearAnim(el) {
+      el.style.transition = '';
+      el.style.transform  = '';
+    }
+
     function navigateTo(pageId) {
       const current = document.querySelector('.page.active');
       const next    = document.getElementById(pageId);
       if (!next || (current && current.id === pageId)) return;
 
-      if (current) {
-        current.classList.add('exit-to-left');
-        current.classList.remove('active');
-        current.addEventListener('transitionend', () => {
-          current.classList.remove('exit-to-left');
-        }, { once: true });
-      }
-
-      next.style.transform = 'translateX(100%)';
+      snapTo(next, 'translateX(100%)');
       next.classList.add('active');
+
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          next.style.transform = '';
-        });
+        if (current) {
+          current.style.transition = SWIPE_EASE;
+          current.style.transform  = 'translateX(-30%)';
+        }
+        next.style.transition = SWIPE_EASE;
+        next.style.transform  = 'translateX(0)';
+
+        next.addEventListener('transitionend', () => {
+          clearAnim(next);
+          if (current) {
+            current.classList.remove('active');
+            snapTo(current, 'translateX(100%)');
+            clearAnim(current);
+          }
+        }, { once: true });
       });
 
       pageHistory.push(pageId);
@@ -608,25 +703,22 @@
       const prev    = document.getElementById(prevId);
       if (!prev || !current) return;
 
-      prev.style.transform   = 'translateX(-100%)';
-      prev.style.transition  = 'none';
+      snapTo(prev, 'translateX(-30%)');
       prev.classList.add('active');
 
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          current.style.transition = 'transform 380ms cubic-bezier(0.4, 0, 0.2, 1)';
-          current.style.transform  = 'translateX(100%)';
-          prev.style.transition    = 'transform 380ms cubic-bezier(0.4, 0, 0.2, 1)';
-          prev.style.transform     = 'translateX(0)';
-        });
-      });
+        current.style.transition = SWIPE_EASE;
+        current.style.transform  = 'translateX(100%)';
+        prev.style.transition    = SWIPE_EASE;
+        prev.style.transform     = 'translateX(0)';
 
-      current.addEventListener('transitionend', () => {
-        current.classList.remove('active');
-        current.style.transform  = '';
-        current.style.transition = '';
-        prev.style.transition    = '';
-      }, { once: true });
+        current.addEventListener('transitionend', () => {
+          current.classList.remove('active');
+          snapTo(current, 'translateX(100%)');
+          clearAnim(current);
+          clearAnim(prev);
+        }, { once: true });
+      });
 
       updateProgressDots(prevId);
     }
@@ -702,15 +794,31 @@
 
     // ── DOMContentLoaded init ─────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('input-activity').addEventListener('keydown', e => {
+      const activityInput = document.getElementById('input-activity');
+      activityInput.addEventListener('keydown', e => {
         if (e.key === 'Enter') step1Next();
       });
-      document.getElementById('input-member-name').addEventListener('keydown', e => {
+      function resizeActivityInput() {
+        activityInput.style.width = '0';
+        activityInput.style.width = Math.max(80, activityInput.scrollWidth) + 'px';
+      }
+      activityInput.addEventListener('input', resizeActivityInput);
+      resizeActivityInput();
+      const nameInput = document.getElementById('input-member-name');
+      function resizeNameInput() {
+        nameInput.style.width = '0';
+        nameInput.style.width = Math.max(70, nameInput.scrollWidth) + 'px';
+      }
+      window.resizeNameInput = resizeNameInput;
+      nameInput.addEventListener('input', resizeNameInput);
+      resizeNameInput();
+      nameInput.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
           const firstItem = document.querySelector('#expense-rows .expense-row input');
           if (firstItem) firstItem.focus();
         }
       });
+      initPicker();
       document.querySelectorAll('.btn-cta, .btn-secondary').forEach(addBtnPopEffect);
       pageHistory.push('page-step1');
       updateProgressDots('page-step1');
@@ -752,15 +860,76 @@
       pageHistory.push('page-step4');
       updateProgressDots('page-step4');
     }
+    // ── Step 2 Scroll Picker ─────────────────────────────────
+    // Strip: ['', '有', '無', ''] — empty slots keep selected item centred
+    const PICKER_ITEMS    = ['', '有', '無', ''];
+    const PICKER_H        = 38;
+    let pickerIndex       = 1;   // 1 = '有', 2 = '無'
+    let pickerAnimating   = false;
+    let pickerHasExpenses = true;
+
+    function renderPicker() {
+      const inner = document.getElementById('picker-inner');
+      if (!inner) return;
+      inner.innerHTML = PICKER_ITEMS.map((v, i) =>
+        `<span class="picker-item ${i === pickerIndex ? 'picker-selected' : 'picker-dim'}">${v}</span>`
+      ).join('');
+      inner.style.transition = 'none';
+      void inner.offsetWidth;
+      inner.style.transform = `translateY(${-(pickerIndex - 1) * PICKER_H}px)`;
+    }
+
+    function cyclePicker(dir) {
+      if (pickerAnimating) return;
+      const next = pickerIndex + dir;
+      if (next < 1 || next > 2) return; // hard stop at both ends
+      pickerAnimating = true;
+      pickerIndex = next;
+      const inner = document.getElementById('picker-inner');
+      if (!inner) { pickerAnimating = false; return; }
+      inner.querySelectorAll('.picker-item').forEach((el, i) => {
+        el.classList.toggle('picker-selected', i === pickerIndex);
+        el.classList.toggle('picker-dim',      i !== pickerIndex);
+      });
+      inner.style.transition = 'transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      inner.style.transform  = `translateY(${-(pickerIndex - 1) * PICKER_H}px)`;
+      inner.addEventListener('transitionend', () => {
+        pickerHasExpenses = pickerIndex === 1;
+        setHasExpenses(pickerHasExpenses);
+        pickerAnimating = false;
+      }, { once: true });
+    }
+
+    function initPicker() {
+      renderPicker();
+      const el = document.getElementById('has-picker');
+      if (!el) return;
+      let startY = null;
+      el.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+      el.addEventListener('touchend', e => {
+        if (startY === null) return;
+        const dy = startY - e.changedTouches[0].clientY;
+        if (Math.abs(dy) > 8) cyclePicker(dy > 0 ? 1 : -1);
+        else cyclePicker(pickerIndex === 1 ? 1 : -1); // tap = toggle
+        startY = null;
+      });
+      el.addEventListener('click', () => cyclePicker(pickerIndex === 1 ? 1 : -1));
+      el.addEventListener('keydown', e => {
+        if (e.key === 'ArrowUp')   { e.preventDefault(); cyclePicker(-1); }
+        if (e.key === 'ArrowDown') { e.preventDefault(); cyclePicker(1);  }
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); cyclePicker(pickerIndex === 1 ? 1 : -1); }
+      });
+    }
+
     // ── Step 2 ───────────────────────────────────────────────
     function resetStep2() {
       state.currentMember = { name: '', hasExpenses: true, expenses: [{ item: '', amount: '' }] };
       const nameInput = document.getElementById('input-member-name');
-      if (nameInput) nameInput.value = '';
+      if (nameInput) { nameInput.value = ''; if (window.resizeNameInput) window.resizeNameInput(); }
 
-      const toggleHas = document.getElementById('toggle-has');
-      const toggleNo  = document.getElementById('toggle-no');
-      if (toggleHas) { toggleHas.classList.add('active'); toggleNo.classList.remove('active'); }
+      pickerHasExpenses = true;
+      pickerIndex = 1;
+      renderPicker();
 
       const section = document.getElementById('expense-section');
       if (section) { section.classList.remove('hidden'); section.style.maxHeight = '600px'; section.style.opacity = '1'; }
@@ -771,12 +940,11 @@
 
     function onMemberNameInput() {
       state.currentMember.name = document.getElementById('input-member-name').value.trim();
+      if (window.resizeNameInput) window.resizeNameInput();
     }
 
     function setHasExpenses(has) {
       state.currentMember.hasExpenses = has;
-      document.getElementById('toggle-has').classList.toggle('active', has);
-      document.getElementById('toggle-no').classList.toggle('active', !has);
       const section = document.getElementById('expense-section');
       if (has) {
         section.classList.remove('hidden');
@@ -796,20 +964,21 @@
       if (!container) return;
       container.innerHTML = '';
       state.currentMember.expenses.forEach((exp, i) => {
-        const row = document.createElement('div');
+        const row = document.createElement('tr');
         row.className = 'expense-row';
         row.dataset.index = i;
         row.innerHTML = `
-          <input class="input-underline input-sm" type="text" placeholder="嘢飲"
+          <td><input class="input-underline input-sm" type="text" placeholder="嘢飲"
             value="${escHtml(exp.item)}" maxlength="30" autocomplete="off"
-            oninput="updateExpenseItem(${i}, this.value)">
-          <span style="color:var(--color-text-secondary);font-size:17px;flex-shrink:0;">洗咗</span>
-          <input class="input-underline input-sm amount-input" type="number" placeholder="0"
-            value="${exp.amount}" min="0.01" step="0.01"
-            onkeydown="return !['e','E','+','-'].includes(event.key)"
-            oninput="updateExpenseAmount(${i}, this.value)">
-          <span style="color:var(--color-text-secondary);font-size:17px;flex-shrink:0;">蚊</span>
-          <button class="btn-delete-row" onclick="deleteExpenseRow(${i})">×</button>
+            oninput="updateExpenseItem(${i}, this.value)"></td>
+          <td><div class="amount-cell">
+            <span class="amount-dollar">$</span>
+            <input class="input-underline input-sm amount-input" type="number" placeholder="100"
+              value="${exp.amount}" min="0.01" step="0.01"
+              onkeydown="return !['e','E','+','-'].includes(event.key)"
+              oninput="updateExpenseAmount(${i}, this.value)">
+          </div></td>
+          <td><button class="btn-delete-row" onclick="deleteExpenseRow(${i})">×</button></td>
         `;
         container.appendChild(row);
         if (state.currentMember.expenses.length === 1) {
@@ -835,8 +1004,8 @@
       const rows = document.querySelectorAll('#expense-rows .expense-row');
       const row  = rows[i];
       if (!row) return;
-      row.classList.add('collapsing');
-      row.addEventListener('animationend', () => {
+      row.classList.add('row-deleting');
+      row.addEventListener('transitionend', () => {
         state.currentMember.expenses.splice(i, 1);
         renderExpenseRows();
       }, { once: true });
@@ -902,12 +1071,12 @@
       updateCalculateBtn();
       resetStep2();
       const page = document.getElementById('page-step2');
-      page.style.transition = 'none';
-      page.style.transform  = 'translateX(100%)';
-      void page.offsetWidth;
-      page.style.transition = 'transform 380ms cubic-bezier(0.4, 0, 0.2, 1)';
-      page.style.transform  = 'translateX(0)';
-      page.addEventListener('transitionend', () => { page.style.transition = ''; page.style.transform = ''; }, { once: true });
+      snapTo(page, 'translateX(100%)');
+      requestAnimationFrame(() => {
+        page.style.transition = SWIPE_EASE;
+        page.style.transform  = 'translateX(0)';
+        page.addEventListener('transitionend', () => clearAnim(page), { once: true });
+      });
     }
 
     function step2Calculate() {
@@ -924,12 +1093,29 @@
 
     function step2Back() {
       if (state.members.length === 0) {
+        // No committed members — go back to step 1
         navigateBack();
       } else {
-        state.members.pop();
-        resetStep2();
+        // Restore the last committed member into the form, stay on step 2
+        const prev = state.members.pop();
+        state.currentMember = {
+          name: prev.name,
+          hasExpenses: prev.expenses.length > 0,
+          expenses: prev.expenses.length > 0
+            ? prev.expenses.map(e => ({ ...e }))
+            : [{ item: '', amount: '' }]
+        };
+        const nameInput = document.getElementById('input-member-name');
+        if (nameInput) {
+          nameInput.value = prev.name;
+          if (window.resizeNameInput) window.resizeNameInput();
+        }
+        pickerHasExpenses = state.currentMember.hasExpenses;
+        pickerIndex = pickerHasExpenses ? 1 : 2;
+        renderPicker();
+        setHasExpenses(state.currentMember.hasExpenses);
+        renderExpenseRows();
         updateCalculateBtn();
-        navigateBack();
       }
     }
 
@@ -1017,13 +1203,13 @@
       const n     = members.length;
       const W     = 320;
       const cx    = W / 2;
-      const R     = n <= 2 ? 0 : Math.min(110, 40 + n * 14);
+      const R     = n <= 2 ? 0 : Math.min(120, 55 + n * 16);
       const nodeR = n >= 7 ? 26 : 30;
-      const H     = n <= 2 ? 180 : R * 2 + nodeR * 2 + 60;
+      const H     = n <= 2 ? 200 : R * 2 + nodeR * 2 + 60;
 
       const positions = members.map((_, i) => {
         if (n === 1) return { x: cx, y: H / 2 };
-        if (n === 2) return i === 0 ? { x: cx - 100, y: H / 2 } : { x: cx + 100, y: H / 2 };
+        if (n === 2) return i === 0 ? { x: cx - 115, y: H / 2 } : { x: cx + 115, y: H / 2 };
         const angle = (2 * Math.PI * i / n) - Math.PI / 2;
         return { x: cx + R * Math.cos(angle), y: H / 2 + R * Math.sin(angle) };
       });
@@ -1041,8 +1227,12 @@
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < 1) return;
         const ux = dx / dist, uy = dy / dist;
-        const x1 = p1.x + ux * (nodeR + 4), y1 = p1.y + uy * (nodeR + 4);
-        const x2 = p2.x - ux * (nodeR + 10), y2 = p2.y - uy * (nodeR + 10);
+        // Name label sits nodeR+8..nodeR+22 below centre; widen gap when arrow
+        // exits downward from source or arrives from below at target.
+        const gap1 = nodeR + (uy >  0.25 ? 24 : 2);
+        const gap2 = nodeR + (uy < -0.25 ? 26 : 6);
+        const x1 = p1.x + ux * gap1, y1 = p1.y + uy * gap1;
+        const x2 = p2.x - ux * gap2, y2 = p2.y - uy * gap2;
 
         const edgeLen   = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
         const edgeDelay = allNodesDelay + idx * 100;
@@ -1063,17 +1253,27 @@
             style="animation: draw-edge 500ms ease-out ${edgeDelay}ms forwards;"
           />
         `;
-        const lx = ((x1 + x2) / 2).toFixed(1);
-        const ly = (((y1 + y2) / 2) - 6).toFixed(1);
+        const amtStr  = `$${t.amount % 1 === 0 ? t.amount.toFixed(0) : t.amount.toFixed(2)}`;
+        const fSize   = n >= 7 ? 11 : 14;
+        const charW   = n >= 7 ? 7 : 8.5;
+        const labelW  = Math.round(amtStr.length * charW + 16);
+        const labelH  = fSize + 10;
+        const lx      = ((x1 + x2) / 2).toFixed(1);
+        const ly      = ((y1 + y2) / 2).toFixed(1);
+        const rX      = (parseFloat(lx) - labelW / 2).toFixed(1);
+        const rY      = (parseFloat(ly) - labelH / 2).toFixed(1);
         labelSVG += `
-          <text
-            x="${lx}" y="${ly}"
-            text-anchor="middle"
-            font-size="${n >= 7 ? 11 : 14}"
-            font-weight="500"
-            fill="var(--color-amount-label)"
-            style="opacity:0; animation: label-fade 300ms ease-out ${labelDelay}ms forwards;"
-          >$${t.amount.toFixed(2)}</text>
+          <g style="opacity:0; animation: label-fade 300ms ease-out ${labelDelay}ms forwards;">
+            <rect x="${rX}" y="${rY}" width="${labelW}" height="${labelH}"
+              rx="${(labelH / 2).toFixed(1)}" ry="${(labelH / 2).toFixed(1)}"
+              fill="#ffffff" stroke="var(--color-border)" stroke-width="1.5" />
+            <text
+              x="${lx}" y="${ly}"
+              text-anchor="middle" dy="0.35em"
+              font-size="${fSize}" font-weight="600"
+              fill="var(--color-cta-bg)"
+            >${amtStr}</text>
+          </g>
         `;
       });
 
@@ -1087,8 +1287,7 @@
         nodeSVG += `
           <g style="transform-origin: ${x.toFixed(1)}px ${y.toFixed(1)}px; animation: node-pop 400ms cubic-bezier(0.34,1.56,0.64,1) ${delay}ms both;">
             <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${nodeR}" fill="${color}" />
-            <text x="${x.toFixed(1)}" y="${(y + 6).toFixed(1)}" text-anchor="middle"
-                  dominant-baseline="middle"
+            <text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" dy="0.35em"
                   font-size="${fontSize}" font-weight="700" fill="var(--color-node-text)"
                   style="opacity:0; animation: label-fade 200ms ease-out ${delay + 350}ms forwards;">${escHtml(initial)}</text>
             <text x="${x.toFixed(1)}" y="${(y + nodeR + 18).toFixed(1)}" text-anchor="middle"
@@ -1113,12 +1312,14 @@
       const isAllEven = transactions.length === 0;
       let html = '';
 
-      html += `
-        <div>
-          <h2 style="font-size:28px;margin-bottom:8px;">${escHtml(state.activity)}</h2>
-          <p class="result-summary">
-            <strong>${members.length}</strong> 個人去咗，共花咗 <strong>$${total.toFixed(2)}</strong>，每人應付 <strong>$${perPerson.toFixed(2)}</strong>
-          </p>
+      html += `<h2 style="font-size:28px;margin-bottom:8px;">${escHtml(state.activity)}</h2>`;
+
+      const shareHtml = `
+        <div id="share-section">
+          <div class="share-row">
+            <button class="btn-secondary" id="btn-copy-link" onclick="copyShareLink()">🔗 複製連結</button>
+            <button class="btn-secondary" onclick="exportPNG()">🖼️ 儲存為圖片</button>
+          </div>
         </div>
       `;
 
@@ -1129,11 +1330,13 @@
           return `<span class="char-span" style="animation-delay:${i * 40}ms">${escHtml(c)}</span>`;
         }).join('');
         html += `<div class="even-banner" id="even-banner">${chars}</div>`;
+        html += shareHtml;
       } else {
+        html += shareHtml;
         const { svg } = buildGraphSVG(members, transactions);
         html += `<div id="graph-container" style="margin: 0 -4px;">${svg}</div>`;
 
-        html += `<div><p class="section-title">還款明細</p><table class="detail-table">`;
+        html += `<div><p class="section-title">找數表</p><div class="expense-table-wrap"><table class="detail-table">`;
         transactions.forEach((t, i) => {
           html += `
             <tr style="opacity:0; animation: label-fade 300ms ease-out ${i * 60 + 200}ms both;">
@@ -1142,36 +1345,52 @@
             </tr>
           `;
         });
-        html += `</table></div>`;
+        html += `</table></div></div>`;
       }
 
-      html += `<div><p class="section-title">個人開支</p><table class="detail-table">`;
-      members.forEach((m, i) => {
-        html += `
-          <tr style="opacity:0; animation: label-fade 300ms ease-out ${(transactions.length + i) * 60 + 300}ms both;">
-            <td class="detail-row-name">${escHtml(m.name)}</td>
-            <td class="detail-row-amount">$${paid[i].toFixed(2)}</td>
-          </tr>
-        `;
-      });
-      html += `</table></div>`;
+      html += `<div><p class="section-title">個人開支</p><div class="expense-table-wrap"><table class="detail-table">`;
+      (() => {
+        function fmtAmt(n) { return `$${n % 1 === 0 ? n.toFixed(0) : n.toFixed(2)}`; }
+        // Build flat list of rows with border decisions
+        const rows = [];
+        members.forEach((m, mi) => {
+          const items = (m.expenses || []).filter(e => e.item || e.amount > 0);
+          rows.push({ type: 'main', m, mi, hasItems: items.length > 0 });
+          items.forEach((exp, ei) => {
+            rows.push({ type: 'sub', exp, lastOfGroup: ei === items.length - 1 });
+          });
+        });
+        let delay = transactions.length * 60 + 300;
+        rows.forEach((row, ri) => {
+          const isLast = ri === rows.length - 1;
+          const showBorder = !isLast && (
+            (row.type === 'main' && !row.hasItems) ||
+            (row.type === 'sub' && row.lastOfGroup)
+          );
+          const sep = showBorder ? '' : 'border-bottom:none;';
+          const anim = `opacity:0; animation: label-fade 300ms ease-out ${delay}ms both;`;
+          if (row.type === 'main') {
+            html += `<tr style="${anim}">
+              <td class="detail-row-name" style="${sep}">${escHtml(row.m.name)}</td>
+              <td class="detail-row-amount" style="${sep}">${fmtAmt(paid[row.mi])}</td>
+            </tr>`;
+            delay += 60;
+          } else {
+            html += `<tr style="${anim}">
+              <td class="detail-sub-name" style="${sep}">${escHtml(row.exp.item)}</td>
+              <td class="detail-sub-amount" style="${sep}">${fmtAmt(row.exp.amount)}</td>
+            </tr>`;
+            delay += 40;
+          }
+        });
+      })();
+      html += `</table></div></div>`;
 
-      html += `
-        <div id="share-section">
-          <p class="section-title">分享</p>
-          <div class="share-row">
-            <button class="btn-secondary" id="btn-copy-link" onclick="copyShareLink()">🔗 複製連結</button>
-            <button class="btn-secondary" onclick="exportPNG()">🖼️ 儲存為圖片</button>
-          </div>
-        </div>
-        <div style="height: 20px;"></div>
-      `;
+      html += `<div style="height: 20px;"></div>`;
 
       container.innerHTML = html;
 
-      if (isAllEven) {
-        setTimeout(launchConfetti, 400);
-      }
+      setTimeout(launchConfetti, 400);
     }
 
     // ── Share ─────────────────────────────────────────────────
