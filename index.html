@@ -459,6 +459,23 @@
     .detail-table tr:last-child td { border-bottom: none; }
     .detail-row-name   { font-weight: 500; color: var(--color-text-primary); }
     .detail-row-amount { text-align: right; font-weight: 700; color: var(--color-input-text); }
+    .settle-row {
+      display: flex; align-items: center;
+      padding: 13px 16px; font-size: 17px;
+      border-bottom: 1px solid var(--color-border); gap: 0;
+    }
+    .settle-row:last-child { border-bottom: none; }
+    .settle-name { font-weight: 600; color: var(--color-text-primary); white-space: nowrap; }
+    .settle-mid {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      gap: 6px; color: var(--color-text-secondary); font-size: 13px; padding: 0 6px;
+    }
+    .settle-amount-badge {
+      background: color-mix(in srgb, var(--color-cta-bg) 14%, transparent);
+      color: var(--color-cta-bg); font-weight: 700;
+      font-size: 14px; padding: 3px 10px; border-radius: 99px;
+      white-space: nowrap;
+    }
     .detail-sub-name   { padding-left: 20px; font-size: 14px; color: var(--color-text-secondary); }
     .detail-sub-amount { text-align: right; font-size: 14px; color: var(--color-text-secondary); }
     .section-title {
@@ -1351,16 +1368,22 @@
         const { svg } = buildGraphSVG(members, transactions);
         html += `<div id="graph-container" style="margin: 0 -4px;">${svg}</div>`;
 
-        html += `<div><p class="section-title">找數表</p><div class="expense-table-wrap"><table class="detail-table">`;
+        html += `<div><p class="section-title">找數表</p><div class="expense-table-wrap">`;
         transactions.forEach((t, i) => {
+          const amt = t.amount % 1 === 0 ? t.amount.toFixed(0) : t.amount.toFixed(2);
           html += `
-            <tr style="opacity:0; animation: label-fade 300ms ease-out ${i * 60 + 200}ms both;">
-              <td class="detail-row-name">${escHtml(t.from)} → ${escHtml(t.to)}</td>
-              <td class="detail-row-amount">$${t.amount.toFixed(2)}</td>
-            </tr>
+            <div class="settle-row" style="opacity:0; animation: label-fade 300ms ease-out ${i * 60 + 200}ms both;">
+              <span class="settle-name">${escHtml(t.from)}</span>
+              <span class="settle-mid">
+                <span>—</span>
+                <span class="settle-amount-badge">$${amt}</span>
+                <span>→</span>
+              </span>
+              <span class="settle-name">${escHtml(t.to)}</span>
+            </div>
           `;
         });
-        html += `</table></div></div>`;
+        html += `</div></div>`;
       }
 
       html += `<div><p class="section-title">個人開支</p><div class="expense-table-wrap"><table class="detail-table">`;
@@ -1436,7 +1459,17 @@
 
       const clone = svg.cloneNode(true);
 
-      // Inject light-mode variables so CSS vars resolve correctly inside the SVG image
+      // Strip animations and force final visible state on all elements
+      clone.querySelectorAll('[style]').forEach(el => {
+        el.style.animation = 'none';
+        el.style.opacity = '1';
+        el.style.transform = '';
+      });
+      clone.querySelectorAll('line[stroke-dashoffset]').forEach(el => {
+        el.setAttribute('stroke-dashoffset', '0');
+      });
+
+      // Inject light-mode variables and font so CSS vars resolve inside SVG image
       const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
       styleEl.textContent = `
         :root, svg {
