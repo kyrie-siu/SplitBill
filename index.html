@@ -478,6 +478,30 @@
     }
     .detail-sub-name   { padding-left: 20px; font-size: 14px; color: var(--color-text-secondary); }
     .detail-sub-amount { text-align: right; font-size: 14px; color: var(--color-text-secondary); }
+
+    /* ── Exclusions page ── */
+    .exc-section { display: flex; flex-direction: column; gap: 16px; }
+    .exc-member-name {
+      font-size: 16px; font-weight: 700; color: var(--color-text-primary);
+      padding: 12px 14px; border-bottom: 1px solid var(--color-border);
+    }
+    .exc-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 14px; border-bottom: 1px solid var(--color-border);
+      font-size: 16px; gap: 10px;
+    }
+    .exc-row:last-child { border-bottom: none; }
+    .exc-row-label { color: var(--color-text-primary); flex: 1; }
+    .exc-row-payer { font-size: 13px; color: var(--color-text-secondary); margin-top: 2px; }
+    .exc-checkbox {
+      width: 24px; height: 24px; border-radius: 6px; border: 2px solid var(--color-border);
+      background: transparent; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background 150ms, border-color 150ms;
+    }
+    .exc-checkbox.checked {
+      background: var(--color-cta-bg); border-color: var(--color-cta-bg);
+    }
+    .exc-checkbox.checked::after { content: '✓'; color: #fff; font-size: 14px; font-weight: 700; }
     .section-title {
       font-size: 14px;
       font-weight: 700;
@@ -556,6 +580,7 @@
         <div class="progress-dot"></div>
         <div class="progress-dot"></div>
         <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
       </div>
     </div>
     <div id="app">
@@ -620,12 +645,32 @@
         </div>
         <div class="page-footer">
           <button class="btn-cta" onclick="step2AddAnother()">仲有其他人有去</button>
-          <button class="btn-cta" id="btn-calculate" onclick="step2Calculate()" style="display:none;">齊人！計數 🎉</button>
+          <button class="btn-cta" id="btn-calculate" onclick="step2Calculate()" style="display:none;">齊人！下一步</button>
           <button class="btn-secondary" onclick="step2Back()">← 返回</button>
         </div>
       </div>
 
-      <!-- Step 3: Loading -->
+      <!-- Step 3: Exclusions -->
+      <div class="page" id="page-exclusions">
+        <div class="page-content">
+          <div class="step2-form">
+            <p class="step2-line">
+              <span class="scroll-picker" id="exc-picker" role="button" tabindex="0">
+                <span class="picker-inner" id="exc-picker-inner"></span>
+              </span>人係唔需要俾某啲開支
+            </p>
+          </div>
+          <div id="exc-section" style="max-height:0; opacity:0; overflow:hidden; transition: max-height 350ms ease, opacity 300ms ease;">
+            <div class="exc-section" id="exc-tables"></div>
+          </div>
+        </div>
+        <div class="page-footer">
+          <button class="btn-cta" onclick="exclusionsNext()">搞掂！計數！ 🎉</button>
+          <button class="btn-secondary" onclick="navigateBack()">← 返回</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Loading -->
       <div class="page" id="page-step3">
         <div class="loading-container">
           <div class="loading-text-wrap">
@@ -740,7 +785,7 @@
       updateProgressDots(prevId);
     }
 
-    const PAGE_ORDER = ['page-step1', 'page-step2', 'page-step3', 'page-step4'];
+    const PAGE_ORDER = ['page-step1', 'page-step2', 'page-exclusions', 'page-step3', 'page-step4'];
 
     function updateProgressDots(pageId) {
       const activeIdx = PAGE_ORDER.indexOf(pageId);
@@ -764,6 +809,7 @@
       activity: '',
       members:  [],
       currentMember: { name: '', hasExpenses: true, expenses: [{ item: '', amount: '' }] },
+      exclusions: {},   // { memberName: Set<flatExpenseIndex> }
     };
 
     // ── Step 1 ───────────────────────────────────────────────
@@ -1119,8 +1165,8 @@
         state.members.pop();
         return;
       }
-      navigateTo('page-step3');
-      startLoading();
+      renderExclusionsPage();
+      navigateTo('page-exclusions');
     }
 
     function step2Back() {
@@ -1151,7 +1197,144 @@
       }
     }
 
-    // ── Step 3 Loading ───────────────────────────────────────
+    // ── Step 3: Exclusions ───────────────────────────────────
+    let excPickerIndex     = 2;   // 1='有', 2='無'
+    let excPickerAnimating = false;
+
+    function renderExcPicker() {
+      const inner = document.getElementById('exc-picker-inner');
+      if (!inner) return;
+      inner.innerHTML = PICKER_ITEMS.map((v, i) =>
+        `<span class="picker-item ${i === excPickerIndex ? 'picker-selected' : 'picker-dim'}">${v}</span>`
+      ).join('');
+      inner.style.transition = 'none';
+      void inner.offsetWidth;
+      inner.style.transform = `translateY(${-(excPickerIndex - 1) * PICKER_H}px)`;
+    }
+
+    function cycleExcPicker(dir) {
+      if (excPickerAnimating) return;
+      const next = excPickerIndex + dir;
+      if (next < 1 || next > 2) return;
+      excPickerAnimating = true;
+      excPickerIndex = next;
+      const inner = document.getElementById('exc-picker-inner');
+      if (!inner) { excPickerAnimating = false; return; }
+      inner.querySelectorAll('.picker-item').forEach((el, i) => {
+        el.classList.toggle('picker-selected', i === excPickerIndex);
+        el.classList.toggle('picker-dim',      i !== excPickerIndex);
+      });
+      inner.style.transition = 'transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      inner.style.transform  = `translateY(${-(excPickerIndex - 1) * PICKER_H}px)`;
+      inner.addEventListener('transitionend', () => {
+        excPickerAnimating = false;
+        setExcSection(excPickerIndex === 1);
+      }, { once: true });
+    }
+
+    function setExcSection(show) {
+      const sec = document.getElementById('exc-section');
+      if (!sec) return;
+      if (show) {
+        renderExclusionsTables();
+        sec.style.maxHeight = sec.scrollHeight + 'px';
+        sec.style.opacity   = '1';
+        sec.style.overflow  = 'visible';
+      } else {
+        sec.style.maxHeight = '0';
+        sec.style.opacity   = '0';
+        sec.style.overflow  = 'hidden';
+      }
+    }
+
+    function initExcPicker() {
+      renderExcPicker();
+      const el = document.getElementById('exc-picker');
+      if (!el) return;
+      let startY = null;
+      el.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+      el.addEventListener('touchend', e => {
+        if (startY === null) return;
+        const dy = startY - e.changedTouches[0].clientY;
+        if (Math.abs(dy) > 8) cycleExcPicker(dy > 0 ? 1 : -1);
+        else cycleExcPicker(excPickerIndex === 1 ? 1 : -1);
+        startY = null;
+      });
+      el.addEventListener('click', () => cycleExcPicker(excPickerIndex === 1 ? 1 : -1));
+      el.addEventListener('keydown', e => {
+        if (e.key === 'ArrowUp')   { e.preventDefault(); cycleExcPicker(-1); }
+        if (e.key === 'ArrowDown') { e.preventDefault(); cycleExcPicker(1);  }
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); cycleExcPicker(excPickerIndex === 1 ? 1 : -1); }
+      });
+    }
+
+    function getFlattedExpenses() {
+      const list = [];
+      state.members.forEach(m => {
+        m.expenses.filter(e => e.item || e.amount > 0).forEach(e => {
+          list.push({ payer: m.name, item: e.item || '（未命名）', amount: e.amount || 0 });
+        });
+      });
+      return list;
+    }
+
+    function renderExclusionsTables() {
+      const allExp = getFlattedExpenses();
+      const container = document.getElementById('exc-tables');
+      if (!container) return;
+      let html = '';
+      state.members.forEach(m => {
+        const excSet = state.exclusions[m.name] || new Set();
+        html += `<div class="expense-table-wrap">`;
+        html += `<div class="exc-member-name">${escHtml(m.name)}</div>`;
+        if (allExp.length === 0) {
+          html += `<div class="exc-row"><span class="exc-row-label" style="color:var(--color-text-secondary)">（沒有開支）</span></div>`;
+        } else {
+          allExp.forEach((e, idx) => {
+            const isChecked = !excSet.has(idx);
+            html += `
+              <div class="exc-row">
+                <div>
+                  <div class="exc-row-label">${escHtml(e.item)}</div>
+                  <div class="exc-row-payer">由 ${escHtml(e.payer)} 付</div>
+                </div>
+                <div class="exc-checkbox ${isChecked ? 'checked' : ''}"
+                     onclick="toggleExclusion('${escHtml(m.name)}', ${idx}, this)"></div>
+              </div>`;
+          });
+        }
+        html += `</div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function toggleExclusion(memberName, expIdx, el) {
+      if (!state.exclusions[memberName]) state.exclusions[memberName] = new Set();
+      const excSet = state.exclusions[memberName];
+      if (excSet.has(expIdx)) {
+        excSet.delete(expIdx);
+        el.classList.add('checked');
+      } else {
+        excSet.add(expIdx);
+        el.classList.remove('checked');
+      }
+    }
+
+    function renderExclusionsPage() {
+      state.exclusions = {};
+      excPickerIndex = 2; // default '無'
+      requestAnimationFrame(() => {
+        initExcPicker();
+        setExcSection(false);
+      });
+    }
+
+    function exclusionsNext() {
+      navigateTo('page-step3');
+      startLoading();
+    }
+
+    // ── Step 4 Loading ───────────────────────────────────────
     let _loadInterval = null;
 
     function startLoading() {
@@ -1167,7 +1350,8 @@
         t2.style.opacity = which === 1 ? '1' : '0';
       }, 1500);
 
-      const result = computeSplitResult(state.members);
+      const exclusions = excPickerIndex === 1 ? state.exclusions : {};
+      const result = computeSplitResult(state.members, exclusions);
 
       setTimeout(() => {
         clearInterval(_loadInterval);
@@ -1179,29 +1363,44 @@
     // ── Algorithm ────────────────────────────────────────────
     function round2(n) { return Math.round(n * 100) / 100; }
 
-    function computeSplitResult(members) {
-      const n = members.length;
-      const paid = members.map(m =>
-        m.expenses.reduce((sum, e) => sum + e.amount, 0)
-      );
-      const total     = round2(paid.reduce((a, b) => a + b, 0));
-      const perPerson = round2(total / n);
-      const balance   = paid.map((p, i) => ({ name: members[i].name, bal: round2(p - perPerson) }));
+    function computeSplitResult(members, exclusions = {}) {
+      const allExp = [];
+      members.forEach(m => {
+        m.expenses.filter(e => e.item || e.amount > 0).forEach(e => {
+          allExp.push({ payer: m.name, item: e.item, amount: e.amount || 0 });
+        });
+      });
 
+      const balMap = {};
+      members.forEach(m => { balMap[m.name] = 0; });
+
+      allExp.forEach((exp, idx) => {
+        const contributors = members.filter(m => {
+          const excSet = exclusions[m.name];
+          return !excSet || !excSet.has(idx);
+        });
+        if (contributors.length === 0) return;
+        const share = exp.amount / contributors.length;
+        balMap[exp.payer] = round2(balMap[exp.payer] + exp.amount);
+        contributors.forEach(m => { balMap[m.name] = round2(balMap[m.name] - share); });
+      });
+
+      const paid = members.map(m => m.expenses.reduce((s, e) => s + (e.amount || 0), 0));
+      const total = round2(paid.reduce((a, b) => a + b, 0));
+      const perPerson = round2(total / members.length);
+
+      const balArr = members.map(m => ({ name: m.name, bal: round2(balMap[m.name]) }));
       const transactions = [];
-      const pos = balance.filter(b => b.bal >  0.005).map(b => ({ ...b }));
-      const neg = balance.filter(b => b.bal < -0.005).map(b => ({ ...b }));
+      const pos = balArr.filter(b => b.bal >  0.005).map(b => ({ ...b }));
+      const neg = balArr.filter(b => b.bal < -0.005).map(b => ({ ...b }));
       pos.sort((a, b) => b.bal - a.bal);
       neg.sort((a, b) => a.bal - b.bal);
 
       let pi = 0, ni = 0;
       while (pi < pos.length && ni < neg.length) {
-        const creditor = pos[pi];
-        const debtor   = neg[ni];
-        const amount   = round2(Math.min(creditor.bal, -debtor.bal));
-        if (amount > 0) {
-          transactions.push({ from: debtor.name, to: creditor.name, amount });
-        }
+        const creditor = pos[pi], debtor = neg[ni];
+        const amount = round2(Math.min(creditor.bal, -debtor.bal));
+        if (amount > 0) transactions.push({ from: debtor.name, to: creditor.name, amount });
         creditor.bal = round2(creditor.bal - amount);
         debtor.bal   = round2(debtor.bal   + amount);
         if (Math.abs(creditor.bal) < 0.01) pi++;
